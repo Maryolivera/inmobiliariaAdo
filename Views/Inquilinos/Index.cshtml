@@ -1,0 +1,38 @@
+@model List<InmobiliariaAdo.Models.Inquilino>
+@{ ViewData["Title"] = "Inquilinos"; }
+
+<h1>Inquilinos</h1>
+
+@if (TempData["Msg"] != null) {
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
+
+<p><a asp-action="Create" class="btn btn-primary">Nuevo Inquilino</a></p>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No hay inquilinos cargados.</p>
+}
+else
+{
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Id</th><th>DNI</th><th>Nombre</th><th>Apellido</th><th>Teléfono</th><th>Email</th>
+            <th style="width:180px;">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var x in Model)
+    {
+        <tr>
+            <td>@x.Id</td><td>@x.DNI</td><td>@x.Nombre</td><td>@x.Apellido</td><td>@x.Telefono</td><td>@x.Email</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@x.Id" class="btn btn-sm btn-warning me-1">Editar</a>
+                <a asp-action="Delete" asp-route-id="@x.Id" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+}
