@@ -97,3 +97,4 @@ C:\Proyectos\Inmobiliaria-Ado\InmobiliariaAdo\obj\Debug\net9.0\ref\InmobiliariaA
 C:\Proyectos\Inmobiliaria-Ado\InmobiliariaAdo\bin\Debug\net9.0\MySqlConnector.dll
 C:\Proyectos\Inmobiliaria-Ado\InmobiliariaAdo\obj\Debug\net9.0\InmobiliariaAdo.csproj.AssemblyReference.cache
 C:\Proyectos\Inmobiliaria-Ado\InmobiliariaAdo\obj\Debug\net9.0\Inmobili.726A1DD4.Up2Date
+C:\Proyectos\Inmobiliaria-Ado\InmobiliariaAdo\obj\Debug\net9.0\InmobiliariaAdo.sourcelink.json
