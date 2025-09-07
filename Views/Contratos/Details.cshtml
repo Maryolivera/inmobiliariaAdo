@@ -1,0 +1,37 @@
+@model InmobiliariaAdo.Models.Contrato
+@{ ViewData["Title"] = "Detalles del Contrato"; }
+
+<h1>Detalles del Contrato</h1>
+
+<dl class="row">
+  <dt class="col-sm-3">Id</dt>
+  <dd class="col-sm-9">@Model.Id</dd>
+
+  <dt class="col-sm-3">Inmueble</dt>
+  <dd class="col-sm-9">@Model.InmuebleNombre</dd>
+
+  <dt class="col-sm-3">Propietario</dt>
+  <dd class="col-sm-9">@Model.PropietarioNombre</dd>
+
+  <dt class="col-sm-3">Inquilino</dt>
+  <dd class="col-sm-9">@Model.InquilinoNombre</dd>
+
+  <dt class="col-sm-3">Inicio</dt>
+  <dd class="col-sm-9">@Model.FechaInicio.ToString("yyyy-MM-dd")</dd>
+
+  <dt class="col-sm-3">Fin</dt>
+  <dd class="col-sm-9">@Model.FechaFin.ToString("yyyy-MM-dd")</dd>
+
+  <dt class="col-sm-3">Monto mensual</dt>
+  <dd class="col-sm-9">@Model.MontoMensual.ToString("C")</dd>
+
+  <dt class="col-sm-3">Terminación anticipada</dt>
+  <dd class="col-sm-9">@(Model.TerminacionAnticipada?.ToString("yyyy-MM-dd") ?? "-")</dd>
+</dl>
+
+<div class="mt-3">
+  <a asp-action="Edit"    asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+  <a asp-action="Terminar" asp-route-id="@Model.Id" class="btn btn-outline-danger">Terminar</a>
+  <a asp-action="Renovar"  asp-route-id="@Model.Id" class="btn btn-success">Renovar</a>
+  <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>

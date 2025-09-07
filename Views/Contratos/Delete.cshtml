@@ -1,0 +1,45 @@
+@model InmobiliariaAdo.Models.Contrato
+@{ ViewData["Title"] = "Eliminar Contrato"; }
+
+<h1>Eliminar Contrato</h1>
+<p class="text-danger">¿Confirmás eliminar este registro?</p>
+
+<div class="card p-3 mb-3">
+    <dl class="row">
+        <dt class="col-sm-3">Id</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">Inmueble</dt>
+        <dd class="col-sm-9">
+            @Model.InmuebleNombre
+            <small class="text-muted">(Id: @Model.InmuebleId)</small>
+        </dd>
+
+        <dt class="col-sm-3">Propietario</dt>
+        <dd class="col-sm-9">@Model.PropietarioNombre</dd>
+
+        <dt class="col-sm-3">Inquilino</dt>
+        <dd class="col-sm-9">
+            @Model.InquilinoNombre
+            <small class="text-muted">(Id: @Model.InquilinoId)</small>
+        </dd>
+
+        <dt class="col-sm-3">Inicio</dt>
+        <dd class="col-sm-9">@Model.FechaInicio.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">Fin</dt>
+        <dd class="col-sm-9">@Model.FechaFin.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">Monto</dt>
+        <dd class="col-sm-9">$ @Model.MontoMensual</dd>
+
+        <dt class="col-sm-3">Terminación</dt>
+        <dd class="col-sm-9">@((Model.TerminacionAnticipada?.ToString("yyyy-MM-dd")) ?? "-")</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

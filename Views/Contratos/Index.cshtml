@@ -1,0 +1,64 @@
+@model List<InmobiliariaAdo.Models.Contrato>
+@{ ViewData["Title"] = "Contratos"; }
+
+<h1>Contratos</h1>
+
+
+
+<p>
+    <a asp-action="Create" class="btn btn-primary me-2">Nuevo Contrato</a>
+
+    <form asp-action="TerminanEn" method="get" class="d-inline">
+        <label for="dias" class="me-1">Listar los que terminan en</label>
+        <select id="dias" name="dias" class="form-select d-inline-block me-1" style="width:120px;">
+            <option value="30">30 días</option>
+            <option value="60">60 días</option>
+            <option value="90">90 días</option>
+        </select>
+        <button type="submit" class="btn btn-outline-danger">Listar</button>
+    </form>
+</p>
+
+@if (TempData["Msg"] != null) {
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <p>No hay contratos cargados.</p>
+}
+else
+{
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Inmueble</th>
+            <th>Propietario</th>
+            <th>Inquilino</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Monto mensual</th>
+            <th style="width:180px;">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td>@c.Id</td>
+            <td>@c.InmuebleNombre</td>
+            <td>@c.PropietarioNombre</td>
+            <td>@c.InquilinoNombre</td>
+            <td>@c.FechaInicio.ToString("yyyy-MM-dd")</td>
+            <td>@c.FechaFin.ToString("yyyy-MM-dd")</td>
+            <td>$ @c.MontoMensual</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning me-1">Editar</a>
+                <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+}

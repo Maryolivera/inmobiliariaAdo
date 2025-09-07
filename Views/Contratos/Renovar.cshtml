@@ -1,0 +1,48 @@
+@model InmobiliariaAdo.Models.Contrato
+@{
+    ViewData["Title"] = "Renovar contrato";
+}
+
+<h1>Renovar contrato</h1>
+
+<dl class="row">
+    <dt class="col-sm-3">Inmueble</dt>
+    <dd class="col-sm-9">@Model.InmuebleNombre</dd>
+
+    <dt class="col-sm-3">Propietario</dt>
+    <dd class="col-sm-9">@Model.PropietarioNombre</dd>
+
+    <dt class="col-sm-3">Inquilino</dt>
+    <dd class="col-sm-9">@Model.InquilinoNombre</dd>
+
+    <dt class="col-sm-3">Inicio actual</dt>
+    <dd class="col-sm-9">@Model.FechaInicio.ToString("yyyy-MM-dd")</dd>
+
+    <dt class="col-sm-3">Fin actual</dt>
+    <dd class="col-sm-9">@Model.FechaFin.ToString("yyyy-MM-dd")</dd>
+
+    <dt class="col-sm-3">Monto mensual actual</dt>
+    <dd class="col-sm-9">@Model.MontoMensual.ToString("C")</dd>
+</dl>
+
+<form asp-action="Renovar" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label for="nuevoInicio" class="form-label">Nuevo inicio</label>
+        <input type="date" id="nuevoInicio" name="nuevoInicio" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="mb-3">
+        <label for="nuevoFin" class="form-label">Nuevo fin</label>
+        <input type="date" id="nuevoFin" name="nuevoFin" class="form-control" value="@DateTime.Today.AddYears(1).ToString("yyyy-MM-dd")" />
+    </div>
+
+    <div class="mb-3">
+        <label for="nuevoMonto" class="form-label">Nuevo monto mensual</label>
+        <input type="number" id="nuevoMonto" name="nuevoMonto" step="0.01" class="form-control" value="@Model.MontoMensual" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Confirmar renovación</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
+</form>

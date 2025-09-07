@@ -10,46 +10,55 @@
     <link rel="stylesheet" href="~/InmobiliariaAdo.styles.css" asp-append-version="true" />
 </head>
 <body>
+    @{
+        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    }
     <header>
-        @{
-    string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-}
-
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">InmobiliariaAdo</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">InmobiliariaAdo</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div id="mainNavbar" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link @(ctrl=="Home" ? "active text-primary" : "text-dark")"
+                               asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link @(ctrl=="Propietarios" ? "active text-primary" : "text-dark")"
+                               asp-controller="Propietarios" asp-action="Index">Propietarios</a>
                         </li>
                         <li class="nav-item">
-    <a class="nav-link @(ctrl=="Home" ? "active text-primary" : "text-dark")"
-       asp-controller="Home" asp-action="Index">Home</a>
-</li>
-<li class="nav-item">
-    <a class="nav-link @(ctrl=="Propietarios" ? "active text-primary" : "text-dark")"
-       asp-controller="Propietarios" asp-action="Index">Propietarios</a>
-</li>
-<li class="nav-item">
-    <a class="nav-link @(ctrl=="Inquilinos" ? "active text-primary" : "text-dark")"
-       asp-controller="Inquilinos" asp-action="Index">Inquilinos</a>
-</li>
+                            <a class="nav-link @(ctrl=="Inquilinos" ? "active text-primary" : "text-dark")"
+                               asp-controller="Inquilinos" asp-action="Index">Inquilinos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ctrl=="Inmuebles" ? "active text-primary" : "text-dark")"
+                               asp-controller="Inmuebles" asp-action="Index">Inmuebles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ctrl=="Contratos" ? "active text-primary" : "text-dark")"
+                               asp-controller="Contratos" asp-action="Index">Contratos</a>
+                        </li>
+                        @* Agregá más módulos aquí: Pagos, Usuarios, etc. *@
+                    </ul>
 
-
-
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link @(ctrl=="Home" && (ViewContext.RouteData.Values["action"]?.ToString() == "Privacy") ? "active text-primary" : "text-dark")"
+                               asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -58,12 +67,15 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - InmobiliariaAdo - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - InmobiliariaAdo - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+

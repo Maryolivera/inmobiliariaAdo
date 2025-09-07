@@ -1,8 +1,53 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model IEnumerable<InmobiliariaAdo.Models.Inmueble>
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h2>Inicio</h2>
+
+<p>
+    Ir a 
+    <a asp-controller="Inmuebles" asp-action="Index">Inmuebles</a> |
+    <a asp-controller="Propietarios" asp-action="Index">Propietarios</a> |
+    <a asp-controller="Inquilinos" asp-action="Index">Inquilinos</a> |
+    <a asp-controller="Contratos" asp-action="Index">Contratos</a>
+</p>
+
+<hr />
+
+<h3>Inmuebles disponibles hoy: @ViewBag.DisponiblesHoy</h3>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-striped table-bordered table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Dirección</th>
+                <th>Tipo</th>
+                <th>Uso</th>
+                <th>Ambientes</th>
+                <th>Superficie</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var i in Model)
+        {
+            <tr>
+                <td>@i.Id</td>
+                <td>@i.Direccion</td>
+                <td>@i.Tipo</td>
+                <td>@i.Uso</td>
+                <td>@i.Ambientes</td>
+                <td>@i.Superficie m²</td>
+                <td>$ @i.Precio</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p><em>No hay inmuebles disponibles en este momento.</em></p>
+}

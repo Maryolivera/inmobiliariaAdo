@@ -5,6 +5,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<InmobiliariaAdo.Data.Db>();
 builder.Services.AddScoped<InmobiliariaAdo.Data.PropietarioRepositorio>();
 builder.Services.AddScoped<InmobiliariaAdo.Data.InquilinoRepositorio>();
+builder.Services.AddScoped<InmobiliariaAdo.Data.ContratoRepositorio>();
+builder.Services.AddScoped<InmobiliariaAdo.Data.InmuebleRepositorio>();
+
 
 
 

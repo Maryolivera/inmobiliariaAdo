@@ -1,0 +1,27 @@
+# Compilados
+bin/
+obj/
+
+# Config locales de usuario de Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Config locales de VSCode
+.vscode/
+
+# Archivos temporales y logs
+*.tmp
+*.log
+
+# Archivos de settings de desarrollo (no subir credenciales)
+appsettings.Development.json
+
+# Carpeta de uploads (imágenes cargadas en runtime)
+wwwroot/Uploads/
+
+# Bases de datos locales
+*.sqlite
+*.db

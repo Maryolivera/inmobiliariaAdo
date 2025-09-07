@@ -1,0 +1,21 @@
+@model InmobiliariaAdo.Models.Pago
+@{ ViewData["Title"] = "Anular Pago"; }
+
+<h1>Anular Pago</h1>
+<p class="text-danger">¿Confirmás anular este pago? El registro seguirá visible como "Anulado".</p>
+
+<div class="card p-3 mb-3">
+    <dl class="row">
+        <dt class="col-sm-3">Id</dt><dd class="col-sm-9">@Model.Id</dd>
+        <dt class="col-sm-3">Número</dt><dd class="col-sm-9">@Model.Numero</dd>
+        <dt class="col-sm-3">Fecha</dt><dd class="col-sm-9">@Model.FechaPago.ToString("yyyy-MM-dd")</dd>
+        <dt class="col-sm-3">Detalle</dt><dd class="col-sm-9">@Model.Detalle</dd>
+        <dt class="col-sm-3">Importe</dt><dd class="col-sm-9">$ @Model.Importe</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Sí, anular</button>
+    <a asp-action="Index" asp-route-contratoId="@Model.ContratoId" class="btn btn-secondary">Cancelar</a>
+</form>

@@ -1,0 +1,34 @@
+@model InmobiliariaAdo.Models.Contrato
+@{ ViewData["Title"] = "Terminar contrato"; }
+
+<h1>Terminar contrato</h1>
+
+<dl class="row">
+  <dt class="col-sm-3">Inmueble</dt>
+  <dd class="col-sm-9">@Model.InmuebleNombre</dd>
+
+  <dt class="col-sm-3">Propietario</dt>
+  <dd class="col-sm-9">@Model.PropietarioNombre</dd>
+
+  <dt class="col-sm-3">Inquilino</dt>
+  <dd class="col-sm-9">@Model.InquilinoNombre</dd>
+
+  <dt class="col-sm-3">Inicio</dt>
+  <dd class="col-sm-9">@Model.FechaInicio.ToString("yyyy-MM-dd")</dd>
+
+  <dt class="col-sm-3">Fin pactado</dt>
+  <dd class="col-sm-9">@Model.FechaFin.ToString("yyyy-MM-dd")</dd>
+
+  <dt class="col-sm-3">Terminación actual</dt>
+  <dd class="col-sm-9">@(Model.TerminacionAnticipada?.ToString("yyyy-MM-dd") ?? "-")</dd>
+</dl>
+
+<form asp-action="Terminar" method="post">
+  <input type="hidden" name="id" value="@Model.Id" />
+  <div class="mb-3">
+    <label class="form-label">Fecha efectiva de terminación</label>
+    <input type="date" name="fechaEfectiva" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+  </div>
+  <button type="submit" class="btn btn-danger">Confirmar terminación</button>
+  <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Volver</a>
+</form>

@@ -1,0 +1,49 @@
+@model InmobiliariaAdo.Models.Contrato
+@{ ViewData["Title"] = "Editar Contrato"; }
+
+<h1>Editar Contrato</h1>
+
+<form asp-action="Edit" method="post">
+  <input type="hidden" asp-for="Id" />
+  <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+  <div class="mb-3">
+    <label asp-for="InmuebleId" class="form-label">Inmueble</label>
+    <select asp-for="InmuebleId" asp-items="ViewBag.Inmuebles" class="form-select">
+      <option value="">-- Seleccione un inmueble --</option>
+    </select>
+    <span asp-validation-for="InmuebleId" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="InquilinoId" class="form-label">Inquilino</label>
+    <select asp-for="InquilinoId" asp-items="ViewBag.Inquilinos" class="form-select">
+      <option value="">-- Seleccione un inquilino --</option>
+    </select>
+    <span asp-validation-for="InquilinoId" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="FechaInicio" class="form-label"></label>
+    <input asp-for="FechaInicio" type="date" class="form-control" />
+    <span asp-validation-for="FechaInicio" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="FechaFin" class="form-label"></label>
+    <input asp-for="FechaFin" type="date" class="form-control" />
+    <span asp-validation-for="FechaFin" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="MontoMensual" class="form-label"></label>
+    <input asp-for="MontoMensual" class="form-control" />
+    <span asp-validation-for="MontoMensual" class="text-danger"></span>
+  </div>
+
+  <button type="submit" class="btn btn-success">Guardar</button>
+  <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+

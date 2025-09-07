@@ -38,48 +38,54 @@ namespace InmobiliariaAdo.Controllers
             TempData["Msg"] = $"Propietario creado (Id {nuevoId}).";
             return RedirectToAction(nameof(Index));
         }
+
         // GET: /Propietarios/Edit/5
-public async Task<IActionResult> Edit(int id)
-{
-    var p = await _repo.ObtenerPorIdAsync(id);
-    if (p == null) return NotFound();
-    return View(p);
-}
+        public async Task<IActionResult> Edit(int id)
+        {
+            var p = await _repo.ObtenerPorIdAsync(id);
+            if (p == null) return NotFound();
+            return View(p);
+        }
 
-// POST: /Propietarios/Edit/5
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Edit(int id, Propietario p)
-{
-    if (id != p.Id) return BadRequest();
-    if (!ModelState.IsValid) return View(p);
+        // POST: /Propietarios/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Propietario p)
+        {
+            if (id != p.Id) return BadRequest();
+            if (!ModelState.IsValid) return View(p);
 
-    var ok = await _repo.ActualizarAsync(p);
-    if (!ok) return NotFound();
-    TempData["Msg"] = $"Propietario Id {p.Id} actualizado.";
-    return RedirectToAction(nameof(Index));
-}
+            var ok = await _repo.ActualizarAsync(p);
+            if (!ok) return NotFound();
+            TempData["Msg"] = $"Propietario Id {p.Id} actualizado.";
+            return RedirectToAction(nameof(Index));
+        }
 
-// GET: /Propietarios/Delete/5
-public async Task<IActionResult> Delete(int id)
-{
-    var p = await _repo.ObtenerPorIdAsync(id);
-    if (p == null) return NotFound();
-    return View(p); // vista de confirmación
-}
+        // GET: /Propietarios/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var p = await _repo.ObtenerPorIdAsync(id);
+            if (p == null) return NotFound();
+            return View(p); // vista de confirmación
+        }
 
-// POST: /Propietarios/Delete/5
-[HttpPost, ActionName("Delete")]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> DeleteConfirmed(int id)
-{
-    var ok = await _repo.EliminarAsync(id);
-    if (!ok) return NotFound();
-    TempData["Msg"] = $"Propietario Id {id} eliminado.";
-    return RedirectToAction(nameof(Index));
-}
+        // POST: /Propietarios/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var ok = await _repo.EliminarAsync(id);
+            if (!ok) return NotFound();
+            TempData["Msg"] = $"Propietario Id {id} eliminado.";
+            return RedirectToAction(nameof(Index));
+        }
 
-
-
+        // GET: /Propietarios/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var x = await _repo.ObtenerPorIdAsync(id);
+            if (x == null) return NotFound();
+            return View(x);
+        }
     }
 }

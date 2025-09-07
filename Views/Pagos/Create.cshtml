@@ -1,0 +1,38 @@
+@model InmobiliariaAdo.Models.Pago
+@{ ViewData["Title"] = "Nuevo Pago"; }
+
+<h1>Nuevo Pago</h1>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="ContratoId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Numero" class="form-label"></label>
+        <input asp-for="Numero" class="form-control"/>
+        <span asp-validation-for="Numero" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaPago" class="form-label"></label>
+        <input asp-for="FechaPago" type="date" class="form-control"/>
+        <span asp-validation-for="FechaPago" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Detalle" class="form-label"></label>
+        <input asp-for="Detalle" class="form-control"/>
+        <span asp-validation-for="Detalle" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Importe" class="form-label"></label>
+        <input asp-for="Importe" class="form-control"/>
+        <span asp-validation-for="Importe" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+    <a asp-action="Index" asp-route-contratoId="@Model.ContratoId" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

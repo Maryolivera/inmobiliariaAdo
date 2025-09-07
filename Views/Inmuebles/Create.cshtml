@@ -1,0 +1,28 @@
+@model InmobiliariaAdo.Models.Inmueble
+@{ ViewData["Title"] = "Nuevo Inmueble"; }
+
+<h1>Nuevo Inmueble</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3"><label asp-for="PropietarioId" class="form-label"></label><input asp-for="PropietarioId" class="form-control"/><span asp-validation-for="PropietarioId" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Direccion" class="form-label"></label><input asp-for="Direccion" class="form-control"/><span asp-validation-for="Direccion" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Uso" class="form-label"></label><input asp-for="Uso" class="form-control"/><span asp-validation-for="Uso" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Tipo" class="form-label"></label><input asp-for="Tipo" class="form-control"/><span asp-validation-for="Tipo" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Ambientes" class="form-label"></label><input asp-for="Ambientes" class="form-control"/><span asp-validation-for="Ambientes" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Superficie" class="form-label"></label><input asp-for="Superficie" class="form-control"/><span asp-validation-for="Superficie" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Coordenadas" class="form-label"></label><input asp-for="Coordenadas" class="form-control"/><span asp-validation-for="Coordenadas" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Precio" class="form-label"></label><input asp-for="Precio" class="form-control"/><span asp-validation-for="Precio" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Portada" class="form-label"></label><input asp-for="Portada" class="form-control"/><span asp-validation-for="Portada" class="text-danger"></span></div>
+
+    <div class="mb-3 form-check">
+        <input asp-for="Suspendido" class="form-check-input" />
+        <label asp-for="Suspendido" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

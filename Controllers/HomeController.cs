@@ -1,32 +1,44 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using InmobiliariaAdo.Models;
+using InmobiliariaAdo.Data;
 
-
-namespace InmobiliariaAdo.Controllers;
-
-public class HomeController : Controller
+namespace InmobiliariaAdo.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        private readonly ILogger<HomeController> _logger;
+        private readonly InmuebleRepositorio _repoInmuebles;
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+        public HomeController(ILogger<HomeController> logger, InmuebleRepositorio repoInmuebles)
+        {
+            _logger = logger;
+            _repoInmuebles = repoInmuebles;
+        }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        // Página principal
+        public async Task<IActionResult> Index()
+        {
+            // lista de inmuebles disponibles a la fecha de hoy
+            var disponibles = await _repoInmuebles.ListarDisponiblesHoyAsync();
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // los paso al modelo de la vista
+            ViewBag.DisponiblesHoy = disponibles.Count;
+
+            return View(disponibles); 
+            // la vista Index.cshtml recibirá una lista de Inmueble como modelo
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 }
