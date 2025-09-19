@@ -17,16 +17,17 @@
   <dd class="col-sm-9">@Model.InquilinoNombre</dd>
 
   <dt class="col-sm-3">Inicio</dt>
-  <dd class="col-sm-9">@Model.FechaInicio.ToString("yyyy-MM-dd")</dd>
+  <dd class="col-sm-9">@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
 
   <dt class="col-sm-3">Fin</dt>
-  <dd class="col-sm-9">@Model.FechaFin.ToString("yyyy-MM-dd")</dd>
+  <dd class="col-sm-9">@Model.FechaFin.ToString("dd/MM/yyyy")</dd>
 
   <dt class="col-sm-3">Monto mensual</dt>
   <dd class="col-sm-9">@Model.MontoMensual.ToString("C")</dd>
 
   <dt class="col-sm-3">Terminación anticipada</dt>
-  <dd class="col-sm-9">@(Model.TerminacionAnticipada?.ToString("yyyy-MM-dd") ?? "-")</dd>
+  <dd class="col-sm-9">@(Model.TerminacionAnticipada?.ToString("dd/MM/yyyy") ?? "-")</dd>
+
 </dl>
 
 <div class="mt-3">

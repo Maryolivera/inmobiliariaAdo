@@ -39,6 +39,7 @@ else
             <th>Inicio</th>
             <th>Fin</th>
             <th>Monto mensual</th>
+             <th>Pagos</th> 
             <th style="width:180px;">Acciones</th>
         </tr>
     </thead>
@@ -50,9 +51,23 @@ else
             <td>@c.InmuebleNombre</td>
             <td>@c.PropietarioNombre</td>
             <td>@c.InquilinoNombre</td>
-            <td>@c.FechaInicio.ToString("yyyy-MM-dd")</td>
-            <td>@c.FechaFin.ToString("yyyy-MM-dd")</td>
-            <td>$ @c.MontoMensual</td>
+            <td>@c.FechaInicio.ToString("dd/MM/yyyy")</td>
+            <td>@c.FechaFin.ToString("dd/MM/yyyy")</td>
+
+           
+            <td>$ @c.MontoMensual</td><td>
+            <a asp-controller="Pagos"
+               asp-action="Index"
+               asp-route-contratoId="@c.Id"
+               class="btn btn-sm btn-outline-primary">
+                Pagos
+            </a>
+        </td>
+
+
+           
+
+
             <td>
                 <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning me-1">Editar</a>
                 <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-sm btn-danger">Eliminar</a>

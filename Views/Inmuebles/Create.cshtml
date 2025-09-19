@@ -6,7 +6,19 @@
 <form asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="mb-3"><label asp-for="PropietarioId" class="form-label"></label><input asp-for="PropietarioId" class="form-control"/><span asp-validation-for="PropietarioId" class="text-danger"></span></div>
+    <div class="mb-3">
+    <label asp-for="PropietarioId" class="form-label"></label>
+    <select asp-for="PropietarioId" class="form-control" asp-items="ViewBag.Propietarios">
+        <option value="">Seleccione un propietario</option>
+    </select>
+    <span asp-validation-for="PropietarioId" class="text-danger"></span>
+</div>
+
+
+
+
+
+   
     <div class="mb-3"><label asp-for="Direccion" class="form-label"></label><input asp-for="Direccion" class="form-control"/><span asp-validation-for="Direccion" class="text-danger"></span></div>
     <div class="mb-3"><label asp-for="Uso" class="form-label"></label><input asp-for="Uso" class="form-control"/><span asp-validation-for="Uso" class="text-danger"></span></div>
     <div class="mb-3"><label asp-for="Tipo" class="form-label"></label><input asp-for="Tipo" class="form-control"/><span asp-validation-for="Tipo" class="text-danger"></span></div>

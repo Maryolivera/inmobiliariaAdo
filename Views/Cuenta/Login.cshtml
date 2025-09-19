@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Login";
+}
+<h1>Login</h1>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-warning">@TempData["Msg"]</div>
+}
+
+<form asp-action="Login" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input name="email" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Clave</label>
+        <input name="clave" type="password" class="form-control" />
+    </div>
+    <button class="btn btn-primary" type="submit">Ingresar</button>
+</form>

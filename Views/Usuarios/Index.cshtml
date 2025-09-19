@@ -1,0 +1,51 @@
+@model IEnumerable<InmobiliariaAdo.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h1>Usuarios</h1>
+
+<p>
+    <a asp-action="Crear" class="btn btn-primary">➕ Nuevo Usuario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Rol</th>
+            <th>Activo</th>
+            <th>Avatar</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var u in Model)
+{
+        <tr>
+            <td>@u.Email</td>
+            <td>@u.Nombre</td>
+            <td>@u.Apellido</td>
+            <td>@u.Rol</td>
+            <td>@(u.Activo ? "Sí" : "No")</td>
+            <td>
+                @if (!string.IsNullOrEmpty(u.Avatar))
+                {
+                    <img src="@Url.Content("~/avatars/" + u.Avatar)" alt="avatar" width="40" height="40" style="object-fit:cover;border-radius:50%;" />
+                }
+            </td>
+            <td>
+                <a asp-action="Editar" asp-route-id="@u.Id" class="btn btn-sm btn-warning">✏️ Editar</a>
+                <form asp-action="Eliminar" asp-route-id="@u.Id" method="post" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">
+                        🗑️ Eliminar
+                    </button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

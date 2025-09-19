@@ -43,6 +43,49 @@ namespace InmobiliariaAdo.Data
             }
             return lista;
         }
+        
+        // Devuelve datos para el mensaje: ContratoId, Numero de pago, y nombre del Inquilino
+public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerResumenPagoAsync(int pagoId)
+{
+    const string sql = @"
+        SELECT  p.ContratoId,
+                p.Numero,
+                CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
+        FROM Pagos p
+        JOIN Contratos c   ON p.ContratoId = c.Id
+        JOIN Inquilinos i  ON c.InquilinoId = i.Id
+        WHERE p.Id = @id;";
+
+    await using var conn = new MySqlConnector.MySqlConnection(_connString);
+    await conn.OpenAsync();
+    await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", pagoId);
+
+    await using var dr = await cmd.ExecuteReaderAsync();
+    if (await dr.ReadAsync())
+    {
+        var contratoId = dr.GetInt32("ContratoId");
+        var numero = dr.GetInt32("Numero");
+        var nombre = dr.GetString("InquilinoNombre");
+        return (contratoId, numero, nombre);
+    }
+    return (0, 0, "");
+}
+
+
+// Devuelve el próximo número de pago dentro de un contrato
+        public async Task<int> ObtenerSiguienteNumeroAsync(int contratoId)
+        {
+            const string sql = "SELECT COALESCE(MAX(Numero),0)+1 FROM Pagos WHERE ContratoId=@c;";
+            await using var conn = new MySqlConnector.MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@c", contratoId);
+            var obj = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(obj);
+        }
+
+
 
         // Crear pago
         public async Task<int> CrearAsync(Pago x)
@@ -118,5 +161,41 @@ namespace InmobiliariaAdo.Data
             var obj = await cmd.ExecuteScalarAsync();
             return obj == null ? 0 : Convert.ToInt32(obj);
         }
+
+        // Editar solo el concepto (Detalle) de un pago
+        public async Task<bool> EditarConceptoAsync(int id, string detalle)
+        {
+            const string sql = @"UPDATE Pagos SET Detalle=@d WHERE Id=@id AND Anulado=0;";
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@d", detalle);
+            cmd.Parameters.AddWithValue("@id", id);
+            var rows = await cmd.ExecuteNonQueryAsync();
+            return rows == 1;
+        }
+       // Devuelve "Apellido Nombre" del inquilino del contrato
+public async Task<string> ObtenerInquilinoNombrePorContratoAsync(int contratoId)
+{
+    const string sql = @"
+        SELECT CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
+        FROM Contratos c
+        JOIN Inquilinos i ON c.InquilinoId = i.Id
+        WHERE c.Id = @id;
+    ";
+
+    await using var conn = new MySqlConnector.MySqlConnection(_connString);
+    await conn.OpenAsync();
+    await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", contratoId);
+
+    var obj = await cmd.ExecuteScalarAsync();
+    return obj == null ? "" : Convert.ToString(obj)!;
+}
+
+
+
+
+
     }
 }

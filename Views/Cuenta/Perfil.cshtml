@@ -1,0 +1,49 @@
+@model InmobiliariaAdo.Models.Usuario
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<h1>Mi Perfil</h1>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-info">@TempData["Msg"]</div>
+}
+
+<form asp-action="Perfil" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Apellido</label>
+        <input asp-for="Apellido" class="form-control" />
+        <span asp-validation-for="Apellido" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Avatar</label>
+        <input asp-for="Avatar" class="form-control" placeholder="ej: foto.png" />
+        <span asp-validation-for="Avatar" class="text-danger"></span>
+        @if (!string.IsNullOrEmpty(Model.Avatar))
+        {
+            <div class="mt-2">
+                <img src="@Url.Content("~/avatars/" + Model.Avatar)" alt="avatar" width="60" height="60" style="object-fit:cover;border-radius:50%;" />
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
+    <a asp-action="CambiarClave" class="btn btn-secondary">🔑 Cambiar clave</a>
+</form>

@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Cambiar Clave";
+}
+
+<h1>Cambiar Clave</h1>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-info">@TempData["Msg"]</div>
+}
+
+<form asp-action="CambiarClave" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Clave actual</label>
+        <input type="password" name="claveActual" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nueva clave</label>
+        <input type="password" name="nuevaClave" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Confirmar nueva clave</label>
+        <input type="password" name="confirmarClave" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Guardar</button>
+    <a asp-action="Perfil" class="btn btn-secondary">↩️ Volver</a>
+</form>

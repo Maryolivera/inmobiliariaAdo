@@ -1,0 +1,39 @@
+@model InmobiliariaAdo.Models.Pago
+@{ ViewData["Title"] = "Editar concepto de pago"; }
+
+<h1>Editar concepto</h1>
+<p class="text-muted">
+    Solo se puede editar el <strong>Detalle</strong>. El número, la fecha y el importe no son editables.
+</p>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ContratoId" />
+
+    <div class="card p-3 mb-3">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Número</dt>
+            <dd class="col-sm-9">@Model.Numero</dd>
+
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.FechaPago.ToString("dd/MM/yyyy")</dd>
+
+            <dt class="col-sm-3">Importe</dt>
+            <dd class="col-sm-9">$ @Model.Importe</dd>
+
+            <dt class="col-sm-3">Anulado</dt>
+            <dd class="col-sm-9">@(Model.Anulado ? "Sí" : "No")</dd>
+        </dl>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Detalle" class="form-label"></label>
+        <input asp-for="Detalle" class="form-control" />
+        <span asp-validation-for="Detalle" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+    <a asp-action="Index" asp-route-contratoId="@Model.ContratoId" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
