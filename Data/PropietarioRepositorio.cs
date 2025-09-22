@@ -7,9 +7,11 @@ namespace InmobiliariaAdo.Data
     {
         private readonly string _connString;
         public PropietarioRepositorio(IConfiguration config)
-        {
-            _connString = config.GetConnectionString("Default");
-        }
+{
+    _connString = config.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+}
+
 
         public async Task<List<Propietario>> ListarAsync()
         {

@@ -6,10 +6,12 @@ namespace InmobiliariaAdo.Data
     public class PagoRepositorio
     {
         private readonly string _connString;
-        public PagoRepositorio(IConfiguration config)
-        {
-            _connString = config.GetConnectionString("Default");
-        }
+       public PagoRepositorio(IConfiguration config)
+{
+    _connString = config.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+}
+
 
         // ================== CRUD ==================
 
@@ -36,7 +38,7 @@ namespace InmobiliariaAdo.Data
                     ContratoId = dr.GetInt32("ContratoId"),
                     Numero = dr.GetInt32("Numero"),
                     FechaPago = dr.GetDateTime("FechaPago"),
-                    Detalle = dr.GetString("Detalle"),
+                    Detalle = dr.IsDBNull(dr.GetOrdinal("Detalle")) ? string.Empty : dr.GetString("Detalle"),
                     Importe = dr.GetDecimal("Importe"),
                     Anulado = dr.GetBoolean("Anulado"),
                 });
@@ -45,47 +47,46 @@ namespace InmobiliariaAdo.Data
         }
         
         // Devuelve datos para el mensaje: ContratoId, Numero de pago, y nombre del Inquilino
-public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerResumenPagoAsync(int pagoId)
-{
-    const string sql = @"
-        SELECT  p.ContratoId,
-                p.Numero,
-                CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
-        FROM Pagos p
-        JOIN Contratos c   ON p.ContratoId = c.Id
-        JOIN Inquilinos i  ON c.InquilinoId = i.Id
-        WHERE p.Id = @id;";
+        public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerResumenPagoAsync(int pagoId)
+        {
+            const string sql = @"
+                SELECT  p.ContratoId,
+                        p.Numero,
+                        CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
+                FROM Pagos p
+                JOIN Contratos c   ON p.ContratoId = c.Id
+                JOIN Inquilinos i  ON c.InquilinoId = i.Id
+                WHERE p.Id = @id;";
 
-    await using var conn = new MySqlConnector.MySqlConnection(_connString);
-    await conn.OpenAsync();
-    await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@id", pagoId);
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", pagoId);
 
-    await using var dr = await cmd.ExecuteReaderAsync();
-    if (await dr.ReadAsync())
-    {
-        var contratoId = dr.GetInt32("ContratoId");
-        var numero = dr.GetInt32("Numero");
-        var nombre = dr.GetString("InquilinoNombre");
-        return (contratoId, numero, nombre);
-    }
-    return (0, 0, "");
-}
+            await using var dr = await cmd.ExecuteReaderAsync();
+            if (await dr.ReadAsync())
+            {
+                var contratoId = dr.GetInt32("ContratoId");
+                var numero = dr.GetInt32("Numero");
+                var nombre = dr.IsDBNull(dr.GetOrdinal("InquilinoNombre")) 
+                             ? string.Empty 
+                             : dr.GetString("InquilinoNombre");
+                return (contratoId, numero, nombre);
+            }
+            return (0, 0, string.Empty);
+        }
 
-
-// Devuelve el próximo número de pago dentro de un contrato
+        // Devuelve el próximo número de pago dentro de un contrato
         public async Task<int> ObtenerSiguienteNumeroAsync(int contratoId)
         {
             const string sql = "SELECT COALESCE(MAX(Numero),0)+1 FROM Pagos WHERE ContratoId=@c;";
-            await using var conn = new MySqlConnector.MySqlConnection(_connString);
+            await using var conn = new MySqlConnection(_connString);
             await conn.OpenAsync();
-            await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
+            await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@c", contratoId);
             var obj = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(obj);
         }
-
-
 
         // Crear pago
         public async Task<int> CrearAsync(Pago x)
@@ -100,7 +101,7 @@ public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerR
             cmd.Parameters.AddWithValue("@c", x.ContratoId);
             cmd.Parameters.AddWithValue("@n", x.Numero);
             cmd.Parameters.AddWithValue("@f", x.FechaPago);
-            cmd.Parameters.AddWithValue("@d", x.Detalle);
+            cmd.Parameters.AddWithValue("@d", x.Detalle ?? string.Empty);
             cmd.Parameters.AddWithValue("@i", x.Importe);
 
             await cmd.ExecuteNonQueryAsync();
@@ -127,7 +128,7 @@ public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerR
                     ContratoId = dr.GetInt32("ContratoId"),
                     Numero = dr.GetInt32("Numero"),
                     FechaPago = dr.GetDateTime("FechaPago"),
-                    Detalle = dr.GetString("Detalle"),
+                    Detalle = dr.IsDBNull(dr.GetOrdinal("Detalle")) ? string.Empty : dr.GetString("Detalle"),
                     Importe = dr.GetDecimal("Importe"),
                     Anulado = dr.GetBoolean("Anulado"),
                 };
@@ -169,33 +170,29 @@ public async Task<(int ContratoId, int Numero, string InquilinoNombre)> ObtenerR
             await using var conn = new MySqlConnection(_connString);
             await conn.OpenAsync();
             await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@d", detalle);
+            cmd.Parameters.AddWithValue("@d", detalle ?? string.Empty);
             cmd.Parameters.AddWithValue("@id", id);
             var rows = await cmd.ExecuteNonQueryAsync();
             return rows == 1;
         }
-       // Devuelve "Apellido Nombre" del inquilino del contrato
-public async Task<string> ObtenerInquilinoNombrePorContratoAsync(int contratoId)
-{
-    const string sql = @"
-        SELECT CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
-        FROM Contratos c
-        JOIN Inquilinos i ON c.InquilinoId = i.Id
-        WHERE c.Id = @id;
-    ";
 
-    await using var conn = new MySqlConnector.MySqlConnection(_connString);
-    await conn.OpenAsync();
-    await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@id", contratoId);
+        // Devuelve "Apellido Nombre" del inquilino del contrato
+        public async Task<string> ObtenerInquilinoNombrePorContratoAsync(int contratoId)
+        {
+            const string sql = @"
+                SELECT CONCAT(i.Apellido, ' ', i.Nombre) AS InquilinoNombre
+                FROM Contratos c
+                JOIN Inquilinos i ON c.InquilinoId = i.Id
+                WHERE c.Id = @id;";
 
-    var obj = await cmd.ExecuteScalarAsync();
-    return obj == null ? "" : Convert.ToString(obj)!;
-}
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", contratoId);
 
-
-
-
-
+            var obj = await cmd.ExecuteScalarAsync();
+            return obj == null ? string.Empty : Convert.ToString(obj)!;
+        }
     }
 }
+

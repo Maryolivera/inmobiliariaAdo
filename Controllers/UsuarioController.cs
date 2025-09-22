@@ -5,30 +5,34 @@ using InmobiliariaAdo.Models;
 
 namespace InmobiliariaAdo.Controllers
 {
-    [Authorize(Policy = "EsAdmin")] // 🚨 solo administradores
+    [Authorize] // 👈 ahora tanto empleados como admins pueden acceder a su perfil
     public class UsuariosController : Controller
     {
         private readonly UsuarioRepositorio _repo;
+        private readonly IConfiguration _config;
 
-        public UsuariosController(UsuarioRepositorio repo)
+        public UsuariosController(IConfiguration config)
         {
-            _repo = repo;
+            _config = config;
+            _repo = new UsuarioRepositorio(config);
         }
 
-        // GET: /Usuarios
+        // ================== LISTADO (solo admin) ==================
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Index()
         {
             var lista = await _repo.ListarAsync();
             return View(lista);
         }
 
-        // GET: /Usuarios/Crear
+        // ================== CREAR USUARIO (solo admin) ==================
+        [Authorize(Policy = "EsAdmin")]
         public IActionResult Crear()
         {
             return View();
         }
 
-        // POST: /Usuarios/Crear
+        [Authorize(Policy = "EsAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Crear(Usuario u, string clavePlano)
@@ -41,7 +45,8 @@ namespace InmobiliariaAdo.Controllers
             return View(u);
         }
 
-        // GET: /Usuarios/Editar/5
+        // ================== EDITAR USUARIO (solo admin) ==================
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Editar(int id)
         {
             var u = await _repo.BuscarPorIdAsync(id);
@@ -49,11 +54,30 @@ namespace InmobiliariaAdo.Controllers
             return View(u);
         }
 
-        // POST: /Usuarios/Editar/5
+        [Authorize(Policy = "EsAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(Usuario u)
+        public async Task<IActionResult> Editar(Usuario u, IFormFile? avatar, string? eliminarAvatar)
         {
+            // Manejo de avatar en edición general
+            if (!string.IsNullOrEmpty(eliminarAvatar))
+            {
+                u.Avatar = null;
+            }
+            else if (avatar != null && avatar.Length > 0)
+            {
+                var ext = Path.GetExtension(avatar.FileName).ToLower();
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var path = Path.Combine("wwwroot/avatars", fileName);
+
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await avatar.CopyToAsync(stream);
+                }
+
+                u.Avatar = fileName;
+            }
+
             if (ModelState.IsValid)
             {
                 await _repo.ActualizarAsync(u);
@@ -62,13 +86,61 @@ namespace InmobiliariaAdo.Controllers
             return View(u);
         }
 
-        // POST: /Usuarios/Eliminar/5
+        // ================== ELIMINAR (solo admin) ==================
+        [Authorize(Policy = "EsAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
         {
             await _repo.EliminarAsync(id); // 👈 borrado lógico (Activo=0)
             return RedirectToAction(nameof(Index));
+        }
+
+        // ================== PERFIL (Empleado/Admin) ==================
+        [HttpGet]
+        public async Task<IActionResult> Perfil()
+        {
+            var email = User.Identity?.Name;
+            if (email == null) return RedirectToAction("Login", "Cuenta");
+
+            var usuario = await _repo.BuscarPorEmailAsync(email);
+            if (usuario == null) return NotFound();
+
+            return View(usuario);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Perfil(Usuario model, IFormFile? avatar, string? eliminarAvatar)
+        {
+            // Buscar usuario real en DB
+            var usuario = await _repo.BuscarPorIdAsync(model.Id);
+            if (usuario == null) return NotFound();
+
+            // Actualizamos campos
+            usuario.Nombre = model.Nombre;
+            usuario.Apellido = model.Apellido;
+
+            if (!string.IsNullOrEmpty(eliminarAvatar))
+            {
+                usuario.Avatar = null;
+            }
+            else if (avatar != null && avatar.Length > 0)
+            {
+                var ext = Path.GetExtension(avatar.FileName).ToLower();
+                var fileName = $"{Guid.NewGuid()}{ext}";
+                var path = Path.Combine("wwwroot/avatars", fileName);
+
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await avatar.CopyToAsync(stream);
+                }
+
+                usuario.Avatar = fileName;
+            }
+
+            await _repo.ActualizarPerfilAsync(usuario);
+            return RedirectToAction("Perfil");
         }
     }
 }

@@ -10,11 +10,13 @@ namespace InmobiliariaAdo.Data
     public class ContratoRepositorio
     {
         private readonly string _connString;
+public ContratoRepositorio(IConfiguration config)
+{
+    _connString = config.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+}
 
-        public ContratoRepositorio(IConfiguration config)
-        {
-            _connString = config.GetConnectionString("Default");
-        }
+        
 
         // SELECT base con JOIN (texto legible para UI)
         private const string SELECT_JOIN = @"
@@ -130,16 +132,23 @@ namespace InmobiliariaAdo.Data
 
             return await cmd.ExecuteNonQueryAsync() == 1;
         }
+public async Task<bool> EliminarAsync(int id)
+{
+    const string sql = @"UPDATE Contratos 
+                         SET TerminacionAnticipada = CURDATE() 
+                         WHERE Id=@id;";
 
-        public async Task<bool> EliminarAsync(int id)
-        {
-            const string sql = @"DELETE FROM contratos WHERE id=@id;";
-            await using var conn = new MySqlConnection(_connString);
-            await conn.OpenAsync();
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
-            return await cmd.ExecuteNonQueryAsync() == 1;
-        }
+    await using var conn = new MySqlConnection(_connString);
+    await conn.OpenAsync();
+    await using var cmd = new MySqlCommand(sql, conn);
+    cmd.Parameters.AddWithValue("@id", id);
+
+    var filas = await cmd.ExecuteNonQueryAsync();
+    return filas == 1;
+}
+
+
+
 
         // ===== EXTRAS =====
 

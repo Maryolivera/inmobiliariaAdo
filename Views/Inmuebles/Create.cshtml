@@ -1,40 +1,72 @@
 @model InmobiliariaAdo.Models.Inmueble
-@{ ViewData["Title"] = "Nuevo Inmueble"; }
+@{
+    ViewData["Title"] = "Nuevo Inmueble";
+}
 
 <h1>Nuevo Inmueble</h1>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="mb-3">
-    <label asp-for="PropietarioId" class="form-label"></label>
-    <select asp-for="PropietarioId" class="form-control" asp-items="ViewBag.Propietarios">
-        <option value="">Seleccione un propietario</option>
-    </select>
-    <span asp-validation-for="PropietarioId" class="text-danger"></span>
-</div>
-
-
-
-
-
-   
-    <div class="mb-3"><label asp-for="Direccion" class="form-label"></label><input asp-for="Direccion" class="form-control"/><span asp-validation-for="Direccion" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Uso" class="form-label"></label><input asp-for="Uso" class="form-control"/><span asp-validation-for="Uso" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Tipo" class="form-label"></label><input asp-for="Tipo" class="form-control"/><span asp-validation-for="Tipo" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Ambientes" class="form-label"></label><input asp-for="Ambientes" class="form-control"/><span asp-validation-for="Ambientes" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Superficie" class="form-label"></label><input asp-for="Superficie" class="form-control"/><span asp-validation-for="Superficie" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Coordenadas" class="form-label"></label><input asp-for="Coordenadas" class="form-control"/><span asp-validation-for="Coordenadas" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Precio" class="form-label"></label><input asp-for="Precio" class="form-control"/><span asp-validation-for="Precio" class="text-danger"></span></div>
-    <div class="mb-3"><label asp-for="Portada" class="form-label"></label><input asp-for="Portada" class="form-control"/><span asp-validation-for="Portada" class="text-danger"></span></div>
-
-    <div class="mb-3 form-check">
-        <input asp-for="Suspendido" class="form-check-input" />
-        <label asp-for="Suspendido" class="form-check-label"></label>
+    <div class="form-group">
+        <label asp-for="PropietarioId" class="control-label">Propietario</label>
+        <select asp-for="PropietarioId" asp-items="ViewBag.Propietarios" class="form-control"></select>
+        <span asp-validation-for="PropietarioId" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success">Guardar</button>
-    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    <div class="form-group">
+        <label asp-for="Direccion" class="control-label"></label>
+        <input asp-for="Direccion" class="form-control" />
+        <span asp-validation-for="Direccion" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Uso" class="control-label"></label>
+        <input asp-for="Uso" class="form-control" />
+        <span asp-validation-for="Uso" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TipoId" class="control-label">Tipo de Inmueble</label>
+        <select asp-for="TipoId" asp-items="ViewBag.Tipos" class="form-control"></select>
+        <span asp-validation-for="TipoId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Ambientes" class="control-label"></label>
+        <input asp-for="Ambientes" class="form-control" />
+        <span asp-validation-for="Ambientes" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Superficie" class="control-label">Superficie (m²)</label>
+        <input asp-for="Superficie" class="form-control" />
+        <span asp-validation-for="Superficie" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Coordenadas" class="control-label"></label>
+        <input asp-for="Coordenadas" class="form-control" />
+        <span asp-validation-for="Coordenadas" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Precio" class="control-label"></label>
+        <input asp-for="Precio" class="form-control" />
+        <span asp-validation-for="Precio" class="text-danger"></span>
+    </div>
+
+    <div class="form-group form-check">
+        <input class="form-check-input" asp-for="Suspendido" />
+        <label class="form-check-label" asp-for="Suspendido">Suspendido</label>
+    </div>
+
+    <div class="form-group mt-3">
+        <input type="submit" value="Crear" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </div>
 </form>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

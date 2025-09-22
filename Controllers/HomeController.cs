@@ -10,24 +10,22 @@ namespace InmobiliariaAdo.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly InmuebleRepositorio _repoInmuebles;
+        private readonly UsuarioRepositorio _repoUsuarios;  
 
-        public HomeController(ILogger<HomeController> logger, InmuebleRepositorio repoInmuebles)
+        // Inyectamos ambos repositorios
+        public HomeController(ILogger<HomeController> logger, InmuebleRepositorio repoInmuebles, UsuarioRepositorio repoUsuarios)
         {
             _logger = logger;
             _repoInmuebles = repoInmuebles;
+            _repoUsuarios = repoUsuarios;   
         }
 
         // Página principal
         public async Task<IActionResult> Index()
         {
-            // lista de inmuebles disponibles a la fecha de hoy
             var disponibles = await _repoInmuebles.ListarDisponiblesHoyAsync();
-
-            // los paso al modelo de la vista
             ViewBag.DisponiblesHoy = disponibles.Count;
-
-            return View(disponibles); 
-            // la vista Index.cshtml recibirá una lista de Inmueble como modelo
+            return View(disponibles);
         }
 
         public IActionResult Privacy()
@@ -39,6 +37,19 @@ namespace InmobiliariaAdo.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        // Acción de prueba de hash
+        [HttpGet]
+        public IActionResult TestHash(string clave = "1234")
+        {
+            // usamos reflexión para llamar al método privado Hash
+            var miMetodo = typeof(UsuarioRepositorio)
+                .GetMethod("Hash", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var hash = miMetodo.Invoke(_repoUsuarios, new object[] { clave });  // 👈 usamos _repoUsuarios
+
+            return Content($"Clave: {clave}\nHash: {hash}");
         }
     }
 }

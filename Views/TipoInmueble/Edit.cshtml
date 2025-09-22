@@ -1,0 +1,20 @@
+@model InmobiliariaAdo.Models.TipoInmueble
+@{ ViewData["Title"] = "Editar Tipo de Inmueble"; }
+
+<h1>Editar Tipo de Inmueble</h1>
+
+<form asp-action="Edit" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

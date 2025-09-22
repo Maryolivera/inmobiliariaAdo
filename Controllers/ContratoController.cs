@@ -5,9 +5,14 @@ using InmobiliariaAdo.Data;
 using InmobiliariaAdo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
+using InmobiliariaAdo.Services; // 👈 para usar AuditoriaArchivo
+
 
 namespace InmobiliariaAdo.Controllers
 {
+    
+    [Authorize] // 🔒 restringido a usuarios logueados
     public class ContratosController : Controller
     {
         private readonly ContratoRepositorio _repo;
@@ -44,33 +49,43 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // POST /Contratos/Create
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Contrato x)
-        {
-            if (!ModelState.IsValid)
-            {
-                await CargarCombosAsync();
-                return View(x);
-            }
+       // POST /Contratos/Create
+[HttpPost, ValidateAntiForgeryToken]
+public async Task<IActionResult> Create(Contrato x)
+{
+    if (!ModelState.IsValid)
+    {
+        await CargarCombosAsync();
+        return View(x);
+    }
 
-            if (x.FechaInicio >= x.FechaFin)
-            {
-                ModelState.AddModelError("", "La fecha de inicio debe ser anterior a la de fin.");
-                await CargarCombosAsync();
-                return View(x);
-            }
+    if (x.FechaInicio >= x.FechaFin)
+    {
+        ModelState.AddModelError("", "La fecha de inicio debe ser anterior a la de fin.");
+        await CargarCombosAsync();
+        return View(x);
+    }
 
-            if (await _repo.ExisteSolapeAsync(x.InmuebleId, x.FechaInicio, x.FechaFin, null))
-            {
-                ModelState.AddModelError("", "El inmueble está ocupado en esas fechas.");
-                await CargarCombosAsync();
-                return View(x);
-            }
+    if (await _repo.ExisteSolapeAsync(x.InmuebleId, x.FechaInicio, x.FechaFin, null))
+    {
+        ModelState.AddModelError("", "El inmueble está ocupado en esas fechas.");
+        await CargarCombosAsync();
+        return View(x);
+    }
 
-            var id = await _repo.CrearAsync(x);
-            TempData["Msg"] = $"Contrato creado (Id {id}).";
-            return RedirectToAction(nameof(Index));
-        }
+    // 1) Crear contrato en la BD
+    var id = await _repo.CrearAsync(x);
+
+    // 2) AUDITORÍA: registrar quién lo creó
+    var userName = User.Identity?.Name ?? "Desconocido";
+    AuditoriaArchivo.RegistrarContrato(id, "creado", userName);
+
+    // 3) Mensaje de confirmación
+    TempData["Msg"] = $"Contrato creado (Id {id}).";
+
+    // 4) Redirigir al listado
+    return RedirectToAction(nameof(Index));
+}
 
         // GET /Contratos/Edit/5
         public async Task<IActionResult> Edit(int id)
@@ -113,6 +128,7 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // GET /Contratos/Delete/5
+        [Authorize(Policy = "EsAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
             var x = await _repo.ObtenerPorIdAsync(id);
@@ -122,6 +138,8 @@ namespace InmobiliariaAdo.Controllers
 
         // POST /Contratos/Delete/5
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+         [Authorize(Policy = "EsAdmin")]
+
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ok = await _repo.EliminarAsync(id);
@@ -131,13 +149,23 @@ namespace InmobiliariaAdo.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET /Contratos/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            var x = await _repo.ObtenerPorIdAsync(id);
-            if (x == null) return NotFound();
-            return View(x);
-        }
+       
+// GET /Contratos/Details/5
+public async Task<IActionResult> Details(int id)
+{
+    var x = await _repo.ObtenerPorIdAsync(id);
+    if (x == null) return NotFound();
+
+    // 🔎 Auditoría
+    var a = AuditoriaArchivo.ObtenerAuditoriaContrato(id);
+    ViewBag.CreadoPor = a.CreadoPor;
+    ViewBag.FechaCreado = a.FechaCreado?.ToString("g");
+    ViewBag.TerminadoPor = a.TerminadoPor;
+    ViewBag.FechaTerminado = a.FechaTerminado?.ToString("g");
+
+    return View(x); // busca Views/Contratos/Details.cshtml
+}
+
 
         // GET /Contratos/Terminar/5
         public async Task<IActionResult> Terminar(int id)
@@ -202,34 +230,34 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // GET /Contratos/TerminanEn?dias=30
-public async Task<IActionResult> TerminanEn(int dias = 30)
-{
-    // rangos no superpuestos
-    int min = 0, max = dias;
-    if (dias == 60) { min = 31; max = 60; }
-    else if (dias == 90) { min = 61; max = 90; }
-
-    
-    var lista = await _repo.ListarQueTerminanEnRangoAsync(min, max);
-   
-    ViewBag.DiasActual = dias;
-
-    if (lista == null || !lista.Any())
-    {
-        TempData["Msg"] = $"No hay contratos que terminen entre {min} y {max} días.";
-        return View("Index", new System.Collections.Generic.List<Contrato>());
-    }
-
-    TempData["Msg"] = $"Contratos que terminan entre {min} y {max} días:";
-    return View("Index", lista);
-}
+        public async Task<IActionResult> TerminanEn(int dias = 30)
+        {
+            // rangos no superpuestos
+            int min = 0, max = dias;
+            if (dias == 60) { min = 31; max = 60; }
+            else if (dias == 90) { min = 61; max = 90; }
 
 
+            var lista = await _repo.ListarQueTerminanEnRangoAsync(min, max);
+
+            ViewBag.DiasActual = dias;
+
+            if (lista == null || !lista.Any())
+            {
+                TempData["Msg"] = $"No hay contratos que terminen entre {min} y {max} días.";
+                return View("Index", new System.Collections.Generic.List<Contrato>());
+            }
+
+            TempData["Msg"] = $"Contratos que terminan entre {min} y {max} días:";
+            return View("Index", lista);
+        }
 
 
 
 
-        
+
+
+
 
         // ================= helpers =================
         private async Task CargarCombosAsync()

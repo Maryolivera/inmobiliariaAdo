@@ -12,8 +12,10 @@ namespace InmobiliariaAdo.Data
 
         public UsuarioRepositorio(IConfiguration config)
         {
-            _connString = config.GetConnectionString("Default");
-            _salt = config["Auth:Salt"] ?? "";
+            _connString = config.GetConnectionString("Default")
+                ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+            _salt = config["Auth:Salt"]
+                ?? throw new InvalidOperationException("Falta Auth:Salt en appsettings.json.");
         }
 
         private string Hash(string textoPlano)
@@ -35,7 +37,8 @@ namespace InmobiliariaAdo.Data
             await using var dr = await cmd.ExecuteReaderAsync();
             if (await dr.ReadAsync())
             {
-                return new Usuario {
+                return new Usuario
+                {
                     Id = dr.GetInt32("Id"),
                     Email = dr.GetString("Email"),
                     ClaveHash = dr.GetString("ClaveHash"),
@@ -214,3 +217,4 @@ namespace InmobiliariaAdo.Data
         }
     }
 }
+

@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - InmobiliariaAdo</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/InmobiliariaAdo.styles.css" asp-append-version="true" />
@@ -12,6 +11,7 @@
 <body>
     @{
         string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var avatar = Context.Session.GetString("Avatar");
     }
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
@@ -46,17 +46,35 @@
                             <a class="nav-link @(ctrl=="Contratos" ? "active text-primary" : "text-dark")"
                                asp-controller="Contratos" asp-action="Index">Contratos</a>
                         </li>
-                        @* Aquí podrías agregar "Pagos" u otros módulos *@
+                        <li class="nav-item">
+                            <a class="nav-link @(ctrl=="TipoInmueble" ? "active text-primary" : "text-dark")"
+                               asp-controller="TipoInmueble" asp-action="Index">Tipos de Inmueble</a>
+                        </li>
+                        <li class="nav-item">
+    <a class="nav-link text-dark" asp-controller="Inmuebles" asp-action="Libres">Inmuebles Libres por Fechas</a>
+</li>
+
+                        
                     </ul>
 
                     <!-- Menú derecho (auth) -->
                     <ul class="navbar-nav">
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
+                            <li class="nav-item d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(avatar))
+                                {
+                                    <img src="~/avatars/@avatar"
+                                         alt="avatar"
+                                         class="rounded-circle me-2"
+                                         width="30" height="30" />
+                                }
+                                <span class="me-3">
+                                    @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
+                                </span>
+                            </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Cuenta" asp-action="Perfil">
-                                    👤 @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value
-                                </a>
+                                <a class="nav-link text-dark" asp-controller="Usuarios" asp-action="Perfil">Perfil</a>
                             </li>
                             <li class="nav-item">
                                 <form asp-controller="Cuenta" asp-action="Logout" method="post" class="d-inline">
@@ -102,7 +120,5 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-
-
 
 

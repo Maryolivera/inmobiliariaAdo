@@ -10,12 +10,13 @@ namespace InmobiliariaAdo.Data
     public class InquilinoRepositorio
     {
         private readonly string _connString;
+public InquilinoRepositorio(IConfiguration config)
+{
+    _connString = config.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+}
 
-        public InquilinoRepositorio(IConfiguration config)
-        {
-            _connString = config.GetConnectionString("Default");
-        }
-
+        
         // ==== Helpers ====
         private static string? GetStringOrNull(MySqlDataReader dr, string name)
         {

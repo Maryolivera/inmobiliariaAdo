@@ -1,9 +1,11 @@
 using InmobiliariaAdo.Data;
 using InmobiliariaAdo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InmobiliariaAdo.Controllers
-{
+{    
+     [Authorize] // 🔒 restringido a usuarios logueados
     public class PropietariosController : Controller
     {
         private readonly PropietarioRepositorio _repo;
@@ -62,6 +64,8 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // GET: /Propietarios/Delete/5
+
+        [Authorize(Policy = "EsAdmin")]  
         public async Task<IActionResult> Delete(int id)
         {
             var p = await _repo.ObtenerPorIdAsync(id);
@@ -72,6 +76,7 @@ namespace InmobiliariaAdo.Controllers
         // POST: /Propietarios/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Policy = "EsAdmin")] 
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ok = await _repo.EliminarAsync(id);

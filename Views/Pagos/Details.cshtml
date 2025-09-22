@@ -1,0 +1,41 @@
+@model InmobiliariaAdo.Models.Pago
+@{
+    ViewData["Title"] = "Detalle de Pago";
+}
+<h2>Detalle de Pago</h2>
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-3">Id</dt><dd class="col-sm-9">@Model.Id</dd>
+    <dt class="col-sm-3">Contrato</dt><dd class="col-sm-9">@Model.ContratoId</dd>
+    <dt class="col-sm-3">Número</dt><dd class="col-sm-9">@Model.Numero</dd>
+    <dt class="col-sm-3">Fecha de Pago</dt><dd class="col-sm-9">@Model.FechaPago.ToShortDateString()</dd>
+    <dt class="col-sm-3">Detalle</dt><dd class="col-sm-9">@Model.Detalle</dd>
+    <dt class="col-sm-3">Importe</dt><dd class="col-sm-9">$ @Model.Importe</dd>
+    <dt class="col-sm-3">Anulado</dt><dd class="col-sm-9">@(Model.Anulado ? "Sí" : "No")</dd>
+</dl>
+
+<p>
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
+    <a class="btn btn-secondary" asp-action="Index" asp-route-contratoId="@Model.ContratoId">Volver</a>
+</p>
+@if (User.IsInRole("Administrador"))
+{
+    <h4>Auditoría</h4>
+    <dl class="row">
+        <dt class="col-sm-3">Creado por</dt>
+        <dd class="col-sm-9">
+            @(ViewBag.CreadoPor ?? "—")
+            @if (ViewBag.FechaCreado != null) { <span> (@ViewBag.FechaCreado)</span> }
+        </dd>
+
+        @if (ViewBag.AnuladoPor != null)
+        {
+            <dt class="col-sm-3">Anulado por</dt>
+            <dd class="col-sm-9">
+                @ViewBag.AnuladoPor
+                @if (ViewBag.FechaAnulado != null) { <span> (@ViewBag.FechaAnulado)</span> }
+            </dd>
+        }
+    </dl>
+}

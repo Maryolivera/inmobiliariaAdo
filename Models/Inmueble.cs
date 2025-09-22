@@ -18,11 +18,16 @@ namespace InmobiliariaAdo.Models
         [StringLength(20)]
         [Display(Name = "Uso")] // Residencial / Comercial
         public string Uso { get; set; } = "Residencial";
+        
 
         [Required(ErrorMessage = "Debe especificar el tipo de inmueble")]
-        [StringLength(50)]
-        [Display(Name = "Tipo")] // casa, departamento, local, depósito...
-        public string Tipo { get; set; }
+        [Display(Name = "Tipo de Inmueble")]
+        public int TipoId { get; set; }
+
+        public string? TipoNombre { get; set; } // para mostrar en joins
+
+
+
 
         [Range(1, 99, ErrorMessage = "Los ambientes deben ser entre 1 y 99")]
         public int Ambientes { get; set; }

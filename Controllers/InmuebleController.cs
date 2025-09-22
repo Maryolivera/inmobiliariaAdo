@@ -2,32 +2,43 @@ using InmobiliariaAdo.Data;
 using InmobiliariaAdo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InmobiliariaAdo.Controllers
 {
+    [Authorize] // 🔒 restringido a usuarios logueados
     public class InmueblesController : Controller
     {
         private readonly InmuebleRepositorio _repo;
-        private readonly PropietarioRepositorio _repoProp; // <-- agregado
+        private readonly PropietarioRepositorio _repoProp;
+        private readonly TipoInmuebleRepositorio _repoTipo; // 👈 agregado
 
-        public InmueblesController(InmuebleRepositorio repo, PropietarioRepositorio repoProp)
+        public InmueblesController(InmuebleRepositorio repo, PropietarioRepositorio repoProp, TipoInmuebleRepositorio repoTipo) // 👈 agregado
         {
             _repo = repo;
             _repoProp = repoProp;
+            _repoTipo = repoTipo; // 👈 agregado
         }
 
         // GET /Inmuebles
         public async Task<IActionResult> Index()
         {
-            // ListarAsync del repo debe venir con JOIN (direccion + PropietarioNombre)
             var lista = await _repo.ListarAsync();
             return View(lista);
+        }
+
+        // GET /Inmuebles/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var x = await _repo.ObtenerPorIdAsync(id);
+            if (x == null) return NotFound();
+            return View(x);
         }
 
         // GET /Inmuebles/Create
         public async Task<IActionResult> Create()
         {
-            await CargarPropietariosAsync();
+            await CargarCombosAsync();
             return View();
         }
 
@@ -37,7 +48,7 @@ namespace InmobiliariaAdo.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarPropietariosAsync();
+                await CargarCombosAsync(x.PropietarioId, x.TipoId);
                 return View(x);
             }
 
@@ -49,9 +60,9 @@ namespace InmobiliariaAdo.Controllers
         // GET /Inmuebles/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var x = await _repo.ObtenerPorIdAsync(id); // debe traer PropietarioNombre por JOIN
+            var x = await _repo.ObtenerPorIdAsync(id);
             if (x == null) return NotFound();
-            await CargarPropietariosAsync(x.PropietarioId);
+            await CargarCombosAsync(x.PropietarioId, x.TipoId);
             return View(x);
         }
 
@@ -61,7 +72,7 @@ namespace InmobiliariaAdo.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarPropietariosAsync(x.PropietarioId);
+                await CargarCombosAsync(x.PropietarioId, x.TipoId);
                 return View(x);
             }
 
@@ -73,6 +84,7 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // GET /Inmuebles/Delete/5
+        [Authorize(Policy = "EsAdmin")] // 🔒 solo admins eliminan
         public async Task<IActionResult> Delete(int id)
         {
             var x = await _repo.ObtenerPorIdAsync(id);
@@ -82,33 +94,73 @@ namespace InmobiliariaAdo.Controllers
 
         // POST /Inmuebles/Delete/5
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        [Authorize(Policy = "EsAdmin")] // 🔒 solo admins eliminan
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ok = await _repo.EliminarAsync(id);
-            if (!ok) return NotFound();
-            TempData["Msg"] = $"Inmueble Id {id} eliminado.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _repo.EliminarAsync(id);
+                TempData["SuccessMessage"] = "✅ Inmueble eliminado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                var mensajeError = ex.InnerException?.Message ?? ex.Message;
+
+                if (mensajeError.Contains("1451"))
+                {
+                    TempData["ErrorMessage"] = "❌ No puedes eliminar este Inmueble porque tiene contratos o pagos asociados.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "⚠️ Ocurrió un error al intentar eliminar el Inmueble.";
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // ================= helpers =================
-
-        private async Task CargarPropietariosAsync(int? seleccionadoId = null)
+        private async Task CargarCombosAsync(int? propietarioSel = null, int? tipoSel = null)
         {
-            // Opción A (recomendada): un método del repo que ya devuelva (Id, Texto) con JOIN
-            // var items = await _repoProp.ListarParaComboAsync(); // Id, Texto (Apellido, Nombre)
-            // ViewBag.Propietarios = items.Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Texto, Selected = (seleccionadoId == x.Id) }).ToList();
-
-            // Opción B: si aún no tenés ListarParaComboAsync(), uso ObtenerTodos() y armo el texto aquí:
-            var props = await _repoProp.ListarAsync(); // ajusta al nombre real de tu método
+            var props = await _repoProp.ListarAsync();
             ViewBag.Propietarios = props
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = $"{p.Apellido}, {p.Nombre}",
-                    Selected = (seleccionadoId == p.Id)
+                    Selected = (propietarioSel == p.Id)
+                })
+                .OrderBy(s => s.Text)
+                .ToList();
+
+            var tipos = await _repoTipo.ListarAsync();
+            ViewBag.Tipos = tipos
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Nombre,
+                    Selected = (tipoSel == t.Id)
                 })
                 .OrderBy(s => s.Text)
                 .ToList();
         }
+
+        // ================= inmuebles libres =================
+        [HttpGet]
+        public IActionResult Libres()
+        {
+            return View(); // muestra formulario con 2 fechas
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Libres(DateTime inicio, DateTime fin)
+        {
+            var lista = await _repo.ListarLibresEntreFechasAsync(inicio, fin);
+            ViewBag.FechaInicio = inicio.ToShortDateString();
+            ViewBag.FechaFin = fin.ToShortDateString();
+            return View("LibresResultado", lista);
+        }
     }
 }
+

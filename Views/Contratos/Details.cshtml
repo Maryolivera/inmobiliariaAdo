@@ -1,38 +1,73 @@
 @model InmobiliariaAdo.Models.Contrato
-@{ ViewData["Title"] = "Detalles del Contrato"; }
+@{
+    ViewData["Title"] = "Detalles del Contrato";
+}
 
 <h1>Detalles del Contrato</h1>
 
 <dl class="row">
-  <dt class="col-sm-3">Id</dt>
-  <dd class="col-sm-9">@Model.Id</dd>
+    <dt class="col-sm-3">Id</dt>
+    <dd class="col-sm-9">@Model.Id</dd>
 
-  <dt class="col-sm-3">Inmueble</dt>
-  <dd class="col-sm-9">@Model.InmuebleNombre</dd>
+    <dt class="col-sm-3">Inquilino</dt>
+    <dd class="col-sm-9">@Model.InquilinoNombre</dd>
 
-  <dt class="col-sm-3">Propietario</dt>
-  <dd class="col-sm-9">@Model.PropietarioNombre</dd>
+    <dt class="col-sm-3">Inmueble</dt>
+    <dd class="col-sm-9">@Model.InmuebleNombre</dd>
 
-  <dt class="col-sm-3">Inquilino</dt>
-  <dd class="col-sm-9">@Model.InquilinoNombre</dd>
+    <dt class="col-sm-3">Propietario</dt>
+    <dd class="col-sm-9">@Model.PropietarioNombre</dd>
 
-  <dt class="col-sm-3">Inicio</dt>
-  <dd class="col-sm-9">@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+    <dt class="col-sm-3">Fecha Inicio</dt>
+    <dd class="col-sm-9">@Model.FechaInicio.ToShortDateString()</dd>
 
-  <dt class="col-sm-3">Fin</dt>
-  <dd class="col-sm-9">@Model.FechaFin.ToString("dd/MM/yyyy")</dd>
+    <dt class="col-sm-3">Fecha Fin</dt>
+    <dd class="col-sm-9">@Model.FechaFin.ToShortDateString()</dd>
 
-  <dt class="col-sm-3">Monto mensual</dt>
-  <dd class="col-sm-9">@Model.MontoMensual.ToString("C")</dd>
+    <dt class="col-sm-3">Monto Mensual</dt>
+    <dd class="col-sm-9">$ @Model.MontoMensual</dd>
 
-  <dt class="col-sm-3">Terminación anticipada</dt>
-  <dd class="col-sm-9">@(Model.TerminacionAnticipada?.ToString("dd/MM/yyyy") ?? "-")</dd>
-
+    <dt class="col-sm-3">Terminación Anticipada</dt>
+    <dd class="col-sm-9">
+        @(Model.TerminacionAnticipada?.ToShortDateString() ?? "—")
+    </dd>
 </dl>
 
-<div class="mt-3">
-  <a asp-action="Edit"    asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
-  <a asp-action="Terminar" asp-route-id="@Model.Id" class="btn btn-outline-danger">Terminar</a>
-  <a asp-action="Renovar"  asp-route-id="@Model.Id" class="btn btn-success">Renovar</a>
-  <a asp-action="Index" class="btn btn-secondary">Volver</a>
-</div>
+<p>
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
+    <a class="btn btn-secondary" asp-action="Index">Volver</a>
+
+    @if (User.IsInRole("Administrador"))
+    {
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline">
+            <button type="submit" class="btn btn-danger">Terminar</button>
+        </form>
+    }
+</p>
+
+@if (User.IsInRole("Administrador"))
+{
+    <h4>Auditoría</h4>
+    <dl class="row">
+        <dt class="col-sm-3">Creado por</dt>
+        <dd class="col-sm-9">
+            @(ViewBag.CreadoPor ?? "—")
+            @if (ViewBag.FechaCreado != null)
+            {
+                <span> (@ViewBag.FechaCreado)</span>
+            }
+        </dd>
+
+        @if (ViewBag.TerminadoPor != null)
+        {
+            <dt class="col-sm-3">Terminado por</dt>
+            <dd class="col-sm-9">
+                @ViewBag.TerminadoPor
+                @if (ViewBag.FechaTerminado != null)
+                {
+                    <span> (@ViewBag.FechaTerminado)</span>
+                }
+            </dd>
+        }
+    </dl>
+}

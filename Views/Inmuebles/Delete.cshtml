@@ -2,27 +2,36 @@
 @{ ViewData["Title"] = "Eliminar Inmueble"; }
 
 <h1>Eliminar Inmueble</h1>
-<p class="text-danger">¿Confirmás eliminar este registro?</p>
 
-<div class="card p-3 mb-3">
+<h3>¿Está seguro que desea eliminar este inmueble?</h3>
+
+<div>
     <dl class="row">
-        <dt class="col-sm-3">Id</dt><dd class="col-sm-9">@Model.Id</dd>
-        <dt class="col-sm-3">Propietario</dt><dd class="col-sm-9">@Model.PropietarioNombre</dd>
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Direccion)</dt>
+        <dd class="col-sm-10">@Model.Direccion</dd>
 
-        <dt class="col-sm-3">Dirección</dt><dd class="col-sm-9">@Model.Direccion</dd>
-        <dt class="col-sm-3">Uso</dt><dd class="col-sm-9">@Model.Uso</dd>
-        <dt class="col-sm-3">Tipo</dt><dd class="col-sm-9">@Model.Tipo</dd>
-        <dt class="col-sm-3">Ambientes</dt><dd class="col-sm-9">@Model.Ambientes</dd>
-        <dt class="col-sm-3">Superficie</dt><dd class="col-sm-9">@Model.Superficie m²</dd>
-        <dt class="col-sm-3">Coordenadas</dt><dd class="col-sm-9">@Model.Coordenadas</dd>
-        <dt class="col-sm-3">Precio</dt><dd class="col-sm-9">$ @Model.Precio</dd>
-        <dt class="col-sm-3">Portada</dt><dd class="col-sm-9">@Model.Portada</dd>
-        <dt class="col-sm-3">Suspendido</dt><dd class="col-sm-9">@((Model.Suspendido) ? "Sí" : "No")</dd>
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Uso)</dt>
+        <dd class="col-sm-10">@Model.Uso</dd>
+
+        <dt class="col-sm-2">Tipo</dt>
+        <dd class="col-sm-10">@Model.TipoNombre</dd> <!-- 👈 cambio -->
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Ambientes)</dt>
+        <dd class="col-sm-10">@Model.Ambientes</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Superficie)</dt>
+        <dd class="col-sm-10">@Model.Superficie</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.Precio)</dt>
+        <dd class="col-sm-10">@Model.Precio.ToString("C")</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(m => m.PropietarioNombre)</dt>
+        <dd class="col-sm-10">@Model.PropietarioNombre</dd>
     </dl>
 </div>
 
-<form asp-action="Delete" method="post">
+<form asp-action="DeleteConfirmed" method="post">
     <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <button type="submit" class="btn btn-danger">Eliminar</button>
     <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
 </form>

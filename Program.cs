@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies; // <-- agrega este using
+using Microsoft.AspNetCore.Authentication.Cookies; // <-- ya lo tenías
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,25 +13,33 @@ builder.Services.AddScoped<InmobiliariaAdo.Data.ContratoRepositorio>();
 builder.Services.AddScoped<InmobiliariaAdo.Data.InmuebleRepositorio>();
 builder.Services.AddScoped<InmobiliariaAdo.Data.PagoRepositorio>();
 builder.Services.AddScoped<InmobiliariaAdo.Data.UsuarioRepositorio>();
+builder.Services.AddScoped<InmobiliariaAdo.Data.TipoInmuebleRepositorio>();
 
+// === SESIONES (necesario para el avatar en _Layout) ===
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // expira después de 30 minutos inactivo
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
-// === PASO 2: Autenticación por Cookies ===
+// === Autenticación por Cookies ===
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.Cookie.Name = ".Inmobiliaria.Auth";
-        options.LoginPath = "/Cuenta/Login";                 // acción de login
-        options.AccessDeniedPath = "/Cuenta/Denegado"; // vista de 403
-        options.LogoutPath = "/Cuenta/Logout";               // acción de logout
+        options.LoginPath = "/Cuenta/Login";          // acción de login
+        options.AccessDeniedPath = "/Cuenta/Denegado"; 
+        options.LogoutPath = "/Cuenta/Logout";        // acción de logout
         options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
     });
 
-// === PASO 2: Autorización por Roles/Políticas ===
-// (Administrador puede todo; Empleado al menos su perfil)
+// === Autorización por Roles/Políticas ===
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("EsAdmin", p => p.RequireRole("Administrador"));
@@ -48,17 +56,18 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
-// IMPORTANTE: el orden: primero Authentication, luego Authorization
+// 🚨 Sesión debe ir ANTES de Authentication/Authorization
+app.UseSession();
+
 app.UseAuthentication();   
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

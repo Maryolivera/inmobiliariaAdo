@@ -1,9 +1,13 @@
 using InmobiliariaAdo.Data;
 using InmobiliariaAdo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InmobiliariaAdo.Controllers
 {
+    [Authorize] // 🔒 restringido a usuarios logueados
+    
+
     public class InquilinosController : Controller
     {
         private readonly InquilinoRepositorio _repo;
@@ -49,6 +53,7 @@ namespace InmobiliariaAdo.Controllers
         }
 
         // GET /Inquilinos/Delete/5
+        [Authorize(Policy = "EsAdmin")] 
         public async Task<IActionResult> Delete(int id)
         {
             var x = await _repo.ObtenerPorIdAsync(id);
@@ -58,6 +63,8 @@ namespace InmobiliariaAdo.Controllers
 
         // POST /Inquilinos/Delete/5
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        [Authorize(Policy = "EsAdmin")] 
+
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ok = await _repo.EliminarAsync(id);
@@ -65,5 +72,13 @@ namespace InmobiliariaAdo.Controllers
             TempData["Msg"] = $"Inquilino Id {id} eliminado.";
             return RedirectToAction(nameof(Index));
         }
+        // GET: /Inquilinos/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var x = await _repo.ObtenerPorIdAsync(id);
+            if (x == null) return NotFound();
+            return View(x); // busca Views/Inquilinos/Details.cshtml
+        }
+
     }
 }

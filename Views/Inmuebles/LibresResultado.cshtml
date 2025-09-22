@@ -1,0 +1,43 @@
+@model IEnumerable<InmobiliariaAdo.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Inmuebles Libres";
+}
+
+<h1>Inmuebles Libres</h1>
+<h5>Entre @ViewBag.FechaInicio y @ViewBag.FechaFin</h5>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">
+        ⚠️ No se encontraron inmuebles libres en ese rango de fechas.
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Dirección</th>
+                <th>Tipo</th>
+                <th>Uso</th>
+                <th>Ambientes</th>
+                <th>Propietario</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Direccion</td>
+                <td>@item.TipoNombre</td>
+                <td>@item.Uso</td>
+                <td>@item.Ambientes</td>
+                <td>@item.PropietarioNombre</td>
+                <td>@item.Precio.ToString("C")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

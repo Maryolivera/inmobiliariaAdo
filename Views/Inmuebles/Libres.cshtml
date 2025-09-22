@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Buscar Inmuebles Libres";
+}
+
+<h1>Inmuebles Libres por Fechas</h1>
+
+<form asp-action="Libres" method="post" class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">Fecha inicio</label>
+        <input type="date" name="inicio" class="form-control" required />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Fecha fin</label>
+        <input type="date" name="fin" class="form-control" required />
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+    </div>
+</form>
