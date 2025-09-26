@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using InmobiliariaAdo.Models;
-using Microsoft.Extensions.Configuration; // <-- IMPORTANTE
+using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
 namespace InmobiliariaAdo.Data
@@ -10,15 +10,12 @@ namespace InmobiliariaAdo.Data
     public class ContratoRepositorio
     {
         private readonly string _connString;
-public ContratoRepositorio(IConfiguration config)
-{
-    _connString = config.GetConnectionString("Default")
-        ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
-}
+        public ContratoRepositorio(IConfiguration config)
+        {
+            _connString = config.GetConnectionString("Default")
+                ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
+        }
 
-        
-
-        // SELECT base con JOIN (texto legible para UI)
         private const string SELECT_JOIN = @"
             SELECT
               c.id,
@@ -33,11 +30,10 @@ public ContratoRepositorio(IConfiguration config)
               CONCAT(inq.apellido, ', ', inq.nombre) AS InquilinoNombre
             FROM contratos c
               JOIN inmuebles   i   ON i.id  = c.inmuebleId
-              JOIN propietarios p   ON p.id  = i.PropietarioId   -- <<== P mayúscula
+              JOIN propietarios p   ON p.id  = i.PropietarioId
               JOIN inquilinos  inq  ON inq.id = c.inquilinoId
         ";
 
-        // Helpers
         private static string? GetStringOrNull(MySqlDataReader dr, string name)
         {
             var i = dr.GetOrdinal(name);
@@ -58,8 +54,6 @@ public ContratoRepositorio(IConfiguration config)
             PropietarioNombre = GetStringOrNull(dr, "PropietarioNombre"),
             InquilinoNombre = GetStringOrNull(dr, "InquilinoNombre"),
         };
-
-        // ===== CRUD =====
 
         public async Task<List<Contrato>> ListarAsync()
         {
@@ -132,25 +126,19 @@ public ContratoRepositorio(IConfiguration config)
 
             return await cmd.ExecuteNonQueryAsync() == 1;
         }
-public async Task<bool> EliminarAsync(int id)
-{
-    const string sql = @"UPDATE Contratos 
-                         SET TerminacionAnticipada = CURDATE() 
-                         WHERE Id=@id;";
 
-    await using var conn = new MySqlConnection(_connString);
-    await conn.OpenAsync();
-    await using var cmd = new MySqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@id", id);
-
-    var filas = await cmd.ExecuteNonQueryAsync();
-    return filas == 1;
-}
-
-
-
-
-        // ===== EXTRAS =====
+        public async Task<bool> EliminarAsync(int id)
+        {
+            const string sql = @"UPDATE Contratos 
+                                 SET TerminacionAnticipada = CURDATE() 
+                                 WHERE Id=@id;";
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            var filas = await cmd.ExecuteNonQueryAsync();
+            return filas == 1;
+        }
 
         public async Task<bool> ExisteSolapeAsync(int inmuebleId, DateTime ini, DateTime fin, int? excluirId = null)
         {
@@ -158,9 +146,9 @@ public async Task<bool> EliminarAsync(int id)
                 SELECT 1
                 FROM contratos
                 WHERE inmuebleId=@inm
+                  AND (@ex IS NULL OR id <> @ex)
                   AND fechaInicio < @fin
                   AND @ini < fechaFin
-                  AND (@ex IS NULL OR id <> @ex)
                 LIMIT 1;";
 
             await using var conn = new MySqlConnection(_connString);
@@ -170,7 +158,6 @@ public async Task<bool> EliminarAsync(int id)
             cmd.Parameters.AddWithValue("@ini", ini);
             cmd.Parameters.AddWithValue("@fin", fin);
             cmd.Parameters.AddWithValue("@ex", (object?)excluirId ?? DBNull.Value);
-
             var obj = await cmd.ExecuteScalarAsync();
             return obj != null;
         }
@@ -181,7 +168,6 @@ public async Task<bool> EliminarAsync(int id)
                 UPDATE contratos
                 SET terminacionAnticipada=@f, fechaFin=@f
                 WHERE id=@id;";
-
             await using var conn = new MySqlConnection(_connString);
             await conn.OpenAsync();
             await using var cmd = new MySqlCommand(sql, conn);
@@ -233,7 +219,6 @@ public async Task<bool> EliminarAsync(int id)
             var sql = SELECT_JOIN + @"
                 WHERE @hoy BETWEEN c.fechaInicio AND c.fechaFin
                 ORDER BY c.fechaFin;";
-
             await using var conn = new MySqlConnection(_connString);
             await conn.OpenAsync();
             await using var cmd = new MySqlCommand(sql, conn);
@@ -242,6 +227,7 @@ public async Task<bool> EliminarAsync(int id)
             while (await dr.ReadAsync()) lista.Add(Map(dr));
             return lista;
         }
+
         public async Task<List<Contrato>> ListarQueTerminanEnAsync(int dias)
         {
             var lista = new List<Contrato>();
@@ -283,9 +269,9 @@ public async Task<bool> EliminarAsync(int id)
         }
 
         public async Task<List<Contrato>> ListarQueTerminanEnRangoAsync(int minDias, int maxDias)
-{
-    var lista = new List<Contrato>();
-    const string sql = @"
+        {
+            var lista = new List<Contrato>();
+            const string sql = @"
         SELECT c.id, c.inmuebleId, c.inquilinoId, c.fechaInicio, c.fechaFin, c.montoMensual, c.terminacionAnticipada,
                i.direccion AS InmuebleNombre,
                CONCAT(p.apellido, ', ', p.nombre) AS PropietarioNombre,
@@ -297,35 +283,31 @@ public async Task<bool> EliminarAsync(int id)
         WHERE DATEDIFF(COALESCE(c.terminacionAnticipada, c.fechaFin), CURDATE()) BETWEEN @min AND @max
         ORDER BY COALESCE(c.terminacionAnticipada, c.fechaFin);";
 
-    await using var conn = new MySqlConnection(_connString);
-    await conn.OpenAsync();
-    await using var cmd = new MySqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@min", minDias);
-    cmd.Parameters.AddWithValue("@max", maxDias);
-    await using var dr = await cmd.ExecuteReaderAsync();
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@min", minDias);
+            cmd.Parameters.AddWithValue("@max", maxDias);
+            await using var dr = await cmd.ExecuteReaderAsync();
 
-    while (await dr.ReadAsync())
-    {
-        lista.Add(new Contrato
-        {
-            Id = dr.GetInt32("id"),
-            InmuebleId = dr.GetInt32("inmuebleId"),
-            InquilinoId = dr.GetInt32("inquilinoId"),
-            FechaInicio = dr.GetDateTime("fechaInicio"),
-            FechaFin = dr.GetDateTime("fechaFin"),
-            MontoMensual = dr.GetDecimal("montoMensual"),
-            TerminacionAnticipada = dr.IsDBNull(dr.GetOrdinal("terminacionAnticipada")) ? null : dr.GetDateTime("terminacionAnticipada"),
-            InmuebleNombre = dr.GetString("InmuebleNombre"),
-            PropietarioNombre = dr.GetString("PropietarioNombre"),
-            InquilinoNombre = dr.GetString("InquilinoNombre"),
-        });
-    }
-    return lista;
-}
-
-
-
-
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new Contrato
+                {
+                    Id = dr.GetInt32("id"),
+                    InmuebleId = dr.GetInt32("inmuebleId"),
+                    InquilinoId = dr.GetInt32("inquilinoId"),
+                    FechaInicio = dr.GetDateTime("fechaInicio"),
+                    FechaFin = dr.GetDateTime("fechaFin"),
+                    MontoMensual = dr.GetDecimal("montoMensual"),
+                    TerminacionAnticipada = dr.IsDBNull(dr.GetOrdinal("terminacionAnticipada")) ? null : dr.GetDateTime("terminacionAnticipada"),
+                    InmuebleNombre = dr.GetString("InmuebleNombre"),
+                    PropietarioNombre = dr.GetString("PropietarioNombre"),
+                    InquilinoNombre = dr.GetString("InquilinoNombre"),
+                });
+            }
+            return lista;
+        }
     }
 }
 
