@@ -308,6 +308,26 @@ namespace InmobiliariaAdo.Data
             }
             return lista;
         }
+
+        public async Task<List<Contrato>> ListarPorInmuebleAsync(int inmuebleId)
+        {
+            var lista = new List<Contrato>();
+            // Usamos el SELECT_JOIN para traer todos los datos relacionados.
+            var sql = SELECT_JOIN + " WHERE c.inmuebleId=@inm ORDER BY c.id DESC;";
+            
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            
+            // Agregamos el parámetro para el ID del inmueble
+            cmd.Parameters.AddWithValue("@inm", inmuebleId); 
+            
+            await using var dr = await cmd.ExecuteReaderAsync();
+            while (await dr.ReadAsync())
+                lista.Add(Map(dr));
+            
+            return lista;
+        }
     }
 }
 

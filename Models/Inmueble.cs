@@ -34,7 +34,7 @@ namespace InmobiliariaAdo.Models
 
         [Range(0, 99999, ErrorMessage = "La superficie no puede ser negativa")]
         [Display(Name = "Superficie (m²)")]
-        public int Superficie { get; set; }
+        public decimal Superficie { get; set; }
 
         [Range(0, 999999999, ErrorMessage = "El precio debe ser positivo")]
         [Display(Name = "Precio")]

@@ -6,12 +6,12 @@ namespace InmobiliariaAdo.Data
     public class InmuebleRepositorio
     {
         private readonly string _connString;
+
         public InmuebleRepositorio(IConfiguration config)
         {
             _connString = config.GetConnectionString("Default")
                 ?? throw new InvalidOperationException("Falta ConnectionStrings:Default en appsettings.json.");
         }
-
 
         // ================== CRUD BÁSICO ==================
 
@@ -43,7 +43,7 @@ namespace InmobiliariaAdo.Data
                     TipoId = dr.GetInt32("TipoId"),
                     TipoNombre = dr.GetString("TipoNombre"),
                     Ambientes = dr.GetInt32("Ambientes"),
-                    Superficie = dr.GetInt32("Superficie"),
+                    Superficie = dr.GetDecimal("Superficie"),
                     Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
                     Precio = dr.GetDecimal("Precio"),
                     Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
@@ -107,7 +107,7 @@ namespace InmobiliariaAdo.Data
                     TipoId = dr.GetInt32("TipoId"),
                     TipoNombre = dr.GetString("TipoNombre"),
                     Ambientes = dr.GetInt32("Ambientes"),
-                    Superficie = dr.GetInt32("Superficie"),
+                    Superficie = dr.GetDecimal("Superficie"),
                     Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
                     Precio = dr.GetDecimal("Precio"),
                     Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
@@ -152,30 +152,27 @@ namespace InmobiliariaAdo.Data
             return rows == 1;
         }
 
-        public async Task<List<Inmueble>> ListarDisponiblesHoyAsync()
+        // ================== MÉTODOS NUEVOS PARA API ==================
+
+        public async Task<List<Inmueble>> ObtenerPorPropietarioAsync(int propietarioId)
         {
             var lista = new List<Inmueble>();
-            const string sql = @"
-                SELECT i.Id, i.PropietarioId, i.Direccion, i.Uso, i.TipoId, i.Ambientes, i.Superficie,
-                       i.Coordenadas, i.Precio, i.Portada, i.Suspendido,
-                       CONCAT(p.Apellido, ', ', p.Nombre) AS PropietarioNombre,
-                       t.Nombre AS TipoNombre
-                FROM inmuebles i
-                JOIN propietarios p ON i.PropietarioId = p.id
-                JOIN TiposInmueble t ON t.Id = i.TipoId
-                WHERE i.suspendido = 0
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM contratos c
-                      WHERE c.inmuebleId = i.id
-                        AND CURDATE() BETWEEN c.fechaInicio AND c.fechaFin
-                  )
-                ORDER BY i.direccion;";
+            const string sql = @"SELECT i.Id, i.PropietarioId, i.Direccion, i.Uso, i.TipoId, i.Ambientes, i.Superficie,
+                                        i.Coordenadas, i.Precio, i.Portada, i.Suspendido,
+                                        CONCAT(p.Apellido, ', ', p.Nombre) AS PropietarioNombre,
+                                        t.Nombre AS TipoNombre
+                                 FROM Inmuebles i
+                                 JOIN Propietarios p ON p.Id = i.PropietarioId
+                                 JOIN TiposInmueble t ON t.Id = i.TipoId
+                                 WHERE i.PropietarioId = @prop
+                                 ORDER BY i.Id DESC;";
 
             await using var conn = new MySqlConnection(_connString);
             await conn.OpenAsync();
             await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@prop", propietarioId);
             await using var dr = await cmd.ExecuteReaderAsync();
+
             while (await dr.ReadAsync())
             {
                 lista.Add(new Inmueble
@@ -187,7 +184,54 @@ namespace InmobiliariaAdo.Data
                     TipoId = dr.GetInt32("TipoId"),
                     TipoNombre = dr.GetString("TipoNombre"),
                     Ambientes = dr.GetInt32("Ambientes"),
-                    Superficie = dr.GetInt32("Superficie"),
+                    Superficie = dr.GetDecimal("Superficie"),
+                    Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
+                    Precio = dr.GetDecimal("Precio"),
+                    Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
+                    Suspendido = dr.GetBoolean("Suspendido"),
+                    PropietarioNombre = dr.GetString("PropietarioNombre")
+                });
+            }
+            return lista;
+        }
+
+        public async Task<List<Inmueble>> ObtenerConContratoVigenteAsync(int propietarioId)
+        {
+            var lista = new List<Inmueble>();
+            const string sql = @"
+                SELECT i.Id, i.PropietarioId, i.Direccion, i.Uso, i.TipoId, i.Ambientes, i.Superficie,
+                       i.Coordenadas, i.Precio, i.Portada, i.Suspendido,
+                       CONCAT(p.Apellido, ', ', p.Nombre) AS PropietarioNombre,
+                       t.Nombre AS TipoNombre
+                FROM Inmuebles i
+                JOIN Propietarios p ON p.Id = i.PropietarioId
+                JOIN TiposInmueble t ON t.Id = i.TipoId
+                WHERE i.PropietarioId = @prop
+                  AND EXISTS (
+                      SELECT 1 FROM Contratos c
+                      WHERE c.InmuebleId = i.Id
+                        AND CURDATE() BETWEEN c.FechaInicio AND c.FechaFin
+                  )
+                ORDER BY i.Id DESC;";
+
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@prop", propietarioId);
+            await using var dr = await cmd.ExecuteReaderAsync();
+
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new Inmueble
+                {
+                    Id = dr.GetInt32("Id"),
+                    PropietarioId = dr.GetInt32("PropietarioId"),
+                    Direccion = dr.GetString("Direccion"),
+                    Uso = dr.GetString("Uso"),
+                    TipoId = dr.GetInt32("TipoId"),
+                    TipoNombre = dr.GetString("TipoNombre"),
+                    Ambientes = dr.GetInt32("Ambientes"),
+                    Superficie = dr.GetDecimal("Superficie"),
                     Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
                     Precio = dr.GetDecimal("Precio"),
                     Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
@@ -211,31 +255,10 @@ namespace InmobiliariaAdo.Data
             return rows == 1;
         }
 
-        public async Task<List<(int Id, string Texto)>> ListarParaComboAsync()
-        {
-            var res = new List<(int, string)>();
-            const string sql = @"
-                SELECT i.id,
-                       CONCAT(i.direccion, ' — Prop: ', p.apellido, ', ', p.nombre) AS texto
-                FROM inmuebles i
-                JOIN propietarios p ON i.PropietarioId = p.id
-                ORDER BY i.direccion;";
-
-            await using var conn = new MySqlConnection(_connString);
-            await conn.OpenAsync();
-            await using var cmd = new MySqlCommand(sql, conn);
-            await using var dr = await cmd.ExecuteReaderAsync();
-            while (await dr.ReadAsync())
-            {
-                res.Add((dr.GetInt32("id"), dr.GetString("texto")));
-            }
-            return res;
-        }
-        
         public async Task<List<Inmueble>> ListarLibresEntreFechasAsync(DateTime inicio, DateTime fin)
-{
-    var lista = new List<Inmueble>();
-    const string sql = @"
+        {
+            var lista = new List<Inmueble>();
+            const string sql = @"
         SELECT i.Id, i.Direccion, i.Uso, i.TipoId, i.Ambientes, i.Superficie,
                i.Coordenadas, i.Precio, i.Portada, i.Suspendido,
                CONCAT(p.Apellido, ', ', p.Nombre) AS PropietarioNombre,
@@ -252,36 +275,103 @@ namespace InmobiliariaAdo.Data
           )
         ORDER BY i.Direccion;";
 
-    await using var conn = new MySqlConnection(_connString);
-    await conn.OpenAsync();
-    await using var cmd = new MySqlCommand(sql, conn);
-    cmd.Parameters.AddWithValue("@inicio", inicio);
-    cmd.Parameters.AddWithValue("@fin", fin);
-    await using var dr = await cmd.ExecuteReaderAsync();
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@inicio", inicio);
+            cmd.Parameters.AddWithValue("@fin", fin);
+            await using var dr = await cmd.ExecuteReaderAsync();
 
-    while (await dr.ReadAsync())
-    {
-        lista.Add(new Inmueble
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new Inmueble
+                {
+                    Id = dr.GetInt32("Id"),
+                    Direccion = dr.GetString("Direccion"),
+                    Uso = dr.GetString("Uso"),
+                    TipoId = dr.GetInt32("TipoId"),
+                    TipoNombre = dr.GetString("TipoNombre"),
+                    Ambientes = dr.GetInt32("Ambientes"),
+                    Superficie = dr.GetDecimal("Superficie"),
+                    Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
+                    Precio = dr.GetDecimal("Precio"),
+                    Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
+                    Suspendido = dr.GetBoolean("Suspendido"),
+                    PropietarioNombre = dr.GetString("PropietarioNombre")
+                });
+            }
+
+            return lista;
+        }
+
+        public async Task<List<Inmueble>> ListarDisponiblesHoyAsync()
         {
-            Id = dr.GetInt32("Id"),
-            Direccion = dr.GetString("Direccion"),
-            Uso = dr.GetString("Uso"),
-            TipoId = dr.GetInt32("TipoId"),
-            TipoNombre = dr.GetString("TipoNombre"),
-            Ambientes = dr.GetInt32("Ambientes"),
-            Superficie = dr.GetInt32("Superficie"),
-            Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
-            Precio = dr.GetDecimal("Precio"),
-            Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
-            Suspendido = dr.GetBoolean("Suspendido"),
-            PropietarioNombre = dr.GetString("PropietarioNombre")
-        });
+            var lista = new List<Inmueble>();
+            const string sql = @"
+        SELECT i.Id, i.PropietarioId, i.Direccion, i.Uso, i.TipoId, i.Ambientes, i.Superficie,
+               i.Coordenadas, i.Precio, i.Portada, i.Suspendido,
+               CONCAT(p.Apellido, ', ', p.Nombre) AS PropietarioNombre,
+               t.Nombre AS TipoNombre
+        FROM inmuebles i
+        JOIN propietarios p ON i.PropietarioId = p.id
+        JOIN TiposInmueble t ON t.Id = i.TipoId
+        WHERE i.suspendido = 0
+          AND NOT EXISTS (
+              SELECT 1
+              FROM contratos c
+              WHERE c.inmuebleId = i.id
+                AND CURDATE() BETWEEN c.fechaInicio AND c.fechaFin
+          )
+        ORDER BY i.direccion;";
+
+            await using var conn = new MySqlConnector.MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlConnector.MySqlCommand(sql, conn);
+            await using var dr = await cmd.ExecuteReaderAsync();
+
+            while (await dr.ReadAsync())
+            {
+                lista.Add(new Inmueble
+                {
+                    Id = dr.GetInt32("Id"),
+                    PropietarioId = dr.GetInt32("PropietarioId"),
+                    Direccion = dr.GetString("Direccion"),
+                    Uso = dr.GetString("Uso"),
+                    TipoId = dr.GetInt32("TipoId"),
+                    TipoNombre = dr.GetString("TipoNombre"),
+                    Ambientes = dr.GetInt32("Ambientes"),
+                    Superficie = dr.GetInt32("Superficie"),
+                    Coordenadas = dr.IsDBNull(dr.GetOrdinal("Coordenadas")) ? null : dr.GetString("Coordenadas"),
+                    Precio = dr.GetDecimal("Precio"),
+                    Portada = dr.IsDBNull(dr.GetOrdinal("Portada")) ? null : dr.GetString("Portada"),
+                    Suspendido = dr.GetBoolean("Suspendido"),
+                    PropietarioNombre = dr.GetString("PropietarioNombre")
+                });
+            }
+            return lista;
+        }
+
+public async Task<bool> CambiarEstadoSuspensionAsync(int id, bool suspendido)
+        {
+            const string sql = @"
+                UPDATE inmuebles
+                SET suspendido = @sus
+                WHERE id = @id;";
+
+            await using var conn = new MySqlConnection(_connString);
+            await conn.OpenAsync();
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@sus", suspendido);
+            cmd.Parameters.AddWithValue("@id", id);
+            
+            // Ejecuta la consulta y devuelve true si se actualizó 1 fila
+            return await cmd.ExecuteNonQueryAsync() == 1;
+        }
+
+
+
+
     }
-    return lista;
 }
 
-
-
-    }
-}
-
+        

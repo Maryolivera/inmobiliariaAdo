@@ -1,73 +1,78 @@
-using Microsoft.AspNetCore.Authentication.Cookies; // <-- ya lo tenías
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using InmobiliariaAdo.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC
+// MVC + Vistas
 builder.Services.AddControllersWithViews();
 
-// Repos y servicios
-builder.Services.AddSingleton<InmobiliariaAdo.Data.Db>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.PropietarioRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.InquilinoRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.ContratoRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.InmuebleRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.PagoRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.UsuarioRepositorio>();
-builder.Services.AddScoped<InmobiliariaAdo.Data.TipoInmuebleRepositorio>();
-
-// === SESIONES (necesario para el avatar en _Layout) ===
+// Session
 builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
+builder.Services.AddSession(o =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // expira después de 30 minutos inactivo
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+    o.IdleTimeout = TimeSpan.FromMinutes(30);
+    o.Cookie.HttpOnly = true;
+    o.Cookie.IsEssential = true;
 });
 
-// === Autenticación por Cookies ===
+// Repositorios
+builder.Services.AddSingleton<Db>();
+builder.Services.AddScoped<PropietarioRepositorio>();
+builder.Services.AddScoped<UsuarioRepositorio>();
+builder.Services.AddScoped<InmuebleRepositorio>();
+builder.Services.AddScoped<ContratoRepositorio>();
+builder.Services.AddScoped<PagoRepositorio>();
+
+// JWT
+var jwtKey      = builder.Configuration["Jwt:Key"]      ?? throw new InvalidOperationException("Falta Jwt:Key");
+var jwtIssuer   = builder.Configuration["Jwt:Issuer"]   ?? throw new InvalidOperationException("Falta Jwt:Issuer");
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Falta Jwt:Audience");
+
+// Auth: Cookies (MVC) + JWT (API)
 builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddAuthentication(options =>
     {
-        options.Cookie.Name = ".Inmobiliaria.Auth";
-        options.LoginPath = "/Cuenta/Login";          // acción de login
-        options.AccessDeniedPath = "/Cuenta/Denegado"; 
-        options.LogoutPath = "/Cuenta/Logout";        // acción de logout
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
-        options.SlidingExpiration = true;
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme    = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath        = "/Usuarios/Login";
+        options.LogoutPath       = "/Usuarios/Logout";
+        options.AccessDeniedPath = "/Home/AccesoDenegado";
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer           = true,
+            ValidateAudience         = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer              = jwtIssuer,
+            ValidAudience            = jwtAudience,
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew                = TimeSpan.Zero
+        };
     });
 
-// === Autorización por Roles/Políticas ===
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("EsAdmin", p => p.RequireRole("Administrador"));
-    options.AddPolicy("EsEmpleado", p => p.RequireRole("Empleado", "Administrador"));
-});
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Pipeline
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// 🚨 Sesión debe ir ANTES de Authentication/Authorization
 app.UseSession();
-
-app.UseAuthentication();   
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers();
 
 app.Run();
